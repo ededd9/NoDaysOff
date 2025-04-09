@@ -9,7 +9,9 @@ export default function WorkoutForm() {
     reps: 0,
     sets: 0,
   });
+
   const [workout, setWorkout] = useState([]);
+  //handle submit
   const handleSubmit = (e) => {
     e.preventDefault();
     setWorkout([...workout, exercises]);

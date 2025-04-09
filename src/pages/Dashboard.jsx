@@ -5,6 +5,7 @@ export default function Dashboard() {
   const [showForm, setShowForm] = useState(false);
   return (
     <>
+      //Navbar
       <Nav defaultActiveKey="/home" className="flex-row" variant="pills">
         <Nav.Link href="/home">Dashboard</Nav.Link>
         <Nav.Link eventKey="link-1">

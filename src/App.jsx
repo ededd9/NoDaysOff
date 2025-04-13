@@ -1,11 +1,36 @@
 import { useState } from "react";
-import Dashboard from "./pages/Dashboard";
+import Navbar from "./components/Navbar";
 import "bootstrap/dist/css/bootstrap.min.css";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Dashboard from "./pages/Dashboard";
+import WorkoutStats from "./pages/WorkoutStats";
 function App() {
+  const [exercises, setExercises] = useState({
+    name: "",
+    weight: 0,
+    reps: 0,
+    sets: 0,
+  });
+  const [workout, setWorkout] = useState([]);
   return (
-    <div>
-      <Dashboard></Dashboard>
-    </div>
+    <BrowserRouter>
+      <Navbar
+        setWorkout={setWorkout}
+        exercises={exercises}
+        setExercises={setExercises}
+      />
+      <Routes>
+        <Route path="/home" element={<Dashboard workout={workout} />} />
+        <Route
+          path="/statistics"
+          element={
+            <div>
+              <WorkoutStats />
+            </div>
+          }
+        />
+      </Routes>
+    </BrowserRouter>
   );
 }
 

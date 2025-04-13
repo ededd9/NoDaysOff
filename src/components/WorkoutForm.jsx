@@ -1,8 +1,5 @@
 import { useState } from "react";
-import Dropdown from "react-bootstrap/Dropdown";
-import DropdownButton from "react-bootstrap/DropdownButton";
-
-export default function WorkoutForm() {
+export default function WorkoutForm({ onSubmit }) {
   const [exercises, setExercises] = useState({
     name: "",
     weight: 0,
@@ -10,92 +7,109 @@ export default function WorkoutForm() {
     sets: 0,
   });
 
-  const [workout, setWorkout] = useState([]);
-  //handle submit
   const handleSubmit = (e) => {
     e.preventDefault();
-    setWorkout([...workout, exercises]);
-    setExercises({ name: "", weight: 0, reps: 0, sets: 0 });
+    onSubmit(exercises); // Send data back to parent
+    setExercises({ name: "", weight: 0, reps: 0, sets: 0 }); // Reset form
   };
-  console.log(workout);
+
   return (
-    <>
-      <div className="container mt-4">
-        <div
-          className="card p-4"
-          style={{ maxWidth: "500px", margin: "0 auto" }}
-        >
-          <form onSubmit={handleSubmit}>
-            <div className="mb-3">
-              <label className="form-label">Exercise Name</label>
-              <input
-                className="form-control"
-                placeholder="e.g. Bench Press"
-                value={exercises.name}
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md mx-4">
+        <form onSubmit={handleSubmit}>
+          <div className="mb-4">
+            <label className="block text-gray-700 text-sm font-bold mb-2">
+              Exercise Name
+            </label>
+            <input
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              placeholder="e.g. Bench Press"
+              value={exercises.name}
+              onChange={(e) =>
+                setExercises((prev) => ({ ...prev, name: e.target.value }))
+              }
+            />
+          </div>
+
+          {/* Weight */}
+          <div className="mb-4">
+            <label className="block text-gray-700 text-sm font-bold mb-2">
+              Weight (lbs/kg)
+            </label>
+            <input
+              required
+              type="number"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              placeholder="e.g. 135"
+              value={exercises.weight}
+              onChange={(e) =>
+                setExercises((prev) => ({ ...prev, weight: e.target.value }))
+              }
+            />
+          </div>
+
+          {/* Sets and Reps */}
+          <div className="grid grid-cols-2 gap-4 mb-6">
+            {/* Sets Dropdown */}
+            <div>
+              <label className="block text-gray-700 text-sm font-bold mb-2">
+                Sets
+              </label>
+              <select
+                required
+                className="w-full px-4 py-2 border border-gray-300 rounded-md"
+                value={exercises.sets}
                 onChange={(e) =>
-                  setExercises((prev) => ({ ...prev, name: e.target.value }))
+                  setExercises((prev) => ({
+                    ...prev,
+                    sets: parseInt(e.target.value),
+                  }))
                 }
-              />
+              >
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
+                  <option key={num} value={num}>
+                    {num}
+                  </option>
+                ))}
+              </select>
             </div>
 
-            <div className="mb-3">
-              <label className="form-label">Weight (lbs/kg)</label>
-              <input
-                type="number"
-                className="form-control"
-                placeholder="e.g. 135"
-                value={exercises.weight}
+            {/* Reps Dropdown */}
+            <div>
+              <label className="block text-gray-700 text-sm font-bold mb-2">
+                Reps
+              </label>
+              <select
+                required
+                className="w-full px-4 py-2 border border-gray-300 rounded-md"
+                value={exercises.reps}
                 onChange={(e) =>
-                  setExercises((prev) => ({ ...prev, weight: e.target.value }))
+                  setExercises((prev) => ({
+                    ...prev,
+                    reps: parseInt(e.target.value),
+                  }))
                 }
-              />
-            </div>
-
-            <div className="row g-3 mb-4">
-              <div className="col-md-6">
-                <label className="form-label">Sets</label>
-                <DropdownButton
-                  id="dropdown-basic-button"
-                  title={exercises.sets}
-                  onSelect={(e) =>
-                    setExercises((prev) => ({ ...prev, sets: parseInt(e) }))
-                  }
-                >
-                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
-                    <Dropdown.Item eventKey={num} key={num}>
+              >
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15].map(
+                  (num) => (
+                    <option key={num} value={num}>
                       {num}
-                    </Dropdown.Item>
-                  ))}
-                </DropdownButton>
-              </div>
-
-              <div className="col-md-6">
-                <label className="form-label">Reps</label>
-
-                <DropdownButton
-                  id="dropdown-basic-button"
-                  title={exercises.reps}
-                  onSelect={(e) =>
-                    setExercises((prev) => ({ ...prev, reps: parseInt(e) }))
-                  }
-                >
-                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15].map(
-                    (num) => (
-                      <Dropdown.Item eventKey={num} key={num}>
-                        {num}
-                      </Dropdown.Item>
-                    )
-                  )}
-                </DropdownButton>
-              </div>
+                    </option>
+                  )
+                )}
+              </select>
             </div>
+          </div>
 
-            <button type="submit" className="btn btn-primary w-100">
-              Save Workout
-            </button>
-          </form>
-        </div>
+          <button
+            type="submit"
+            className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
+          >
+            Save Workout
+          </button>
+        </form>
       </div>
-    </>
+    </div>
   );
 }

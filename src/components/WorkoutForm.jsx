@@ -5,11 +5,11 @@ export default function WorkoutForm({ onSubmit }) {
   const [day, setDay] = useState("");
   const year = date.getFullYear();
   const [exercises, setExercises] = useState({
-    name: "Bench",
-    weight: 10,
-    reps: 10,
-    sets: 2,
-    date: "2025-04-13",
+    name: "",
+    weight: 0,
+    reps: 1,
+    sets: 1,
+    date: "",
   });
   const [dateOfWorkout, setDateOfWorkout] = useState("");
   const handleChange = (e) => {

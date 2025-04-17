@@ -1,16 +1,27 @@
 import { useState } from "react";
 export default function WorkoutForm({ onSubmit }) {
+  const date = new Date();
+  const month = date.getMonth() + 1;
+  const [day, setDay] = useState("");
+  const year = date.getFullYear();
   const [exercises, setExercises] = useState({
-    name: "",
-    weight: 0,
-    reps: 0,
-    sets: 0,
+    name: "Bench",
+    weight: 10,
+    reps: 10,
+    sets: 2,
+    date: "2025-04-13",
   });
-
+  const [dateOfWorkout, setDateOfWorkout] = useState("");
+  const handleChange = (e) => {
+    setExercises((prev) => ({ ...prev, date: e.target.value }));
+    setDay(exercises.date);
+    console.log(exercises.date);
+  };
   const handleSubmit = (e) => {
     e.preventDefault();
     onSubmit(exercises); // Send data back to parent
-    setExercises({ name: "", weight: 0, reps: 0, sets: 0 }); // Reset form
+    setExercises({ name: "", weight: 0, reps: 0, sets: 0, date: "" }); // Reset form
+    setDay("");
   };
 
   return (
@@ -101,7 +112,15 @@ export default function WorkoutForm({ onSubmit }) {
               </select>
             </div>
           </div>
-
+          <label className="block text-gray-700 text-sm font-bold mb-2">
+            Date of Workout :{" "}
+            <input
+              type="date"
+              onChange={(e) =>
+                setExercises((prev) => ({ ...prev, date: e.target.value }))
+              }
+            ></input>
+          </label>
           <button
             type="submit"
             className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"

@@ -5,11 +5,13 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Dashboard from "./pages/Dashboard";
 import WorkoutStats from "./pages/WorkoutStats";
 function App() {
+  //hierarchy of prop drilling
   const [exercises, setExercises] = useState({
     name: "",
     weight: 0,
     reps: 0,
     sets: 0,
+    date: "",
   });
   const [workout, setWorkout] = useState([]);
   return (

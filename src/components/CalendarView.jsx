@@ -6,9 +6,12 @@ import {
   eachDayOfInterval,
   endOfMonth,
   startOfMonth,
+  addMonths,
+  subMonths,
 } from "date-fns";
 import { monthsInQuarter } from "date-fns/constants";
 export default function CalendarView({ workout }) {
+  const [isEditing, setIsEditing] = useState(false);
   const daysOfWeek = ["Sun", "Mon", "Tues", "Wed", "Thu", "Fri", "Sat"];
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const monthStart = startOfMonth(currentMonth);
@@ -19,6 +22,22 @@ export default function CalendarView({ workout }) {
   return (
     <>
       <div>CalendarView</div>
+      <div className="space-x-2">
+        <button
+          className="
+          mt-2 px-2 py-1 bg-blue-100 hover:bg-blue-200 text-blue-800 text-xs font-medium rounded-md transition-colors shadow-sm"
+          onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
+        >
+          Previous
+        </button>
+        <button
+          className="
+          mt-2 px-2 py-1 bg-blue-100 hover:bg-blue-200 text-blue-800 text-xs font-medium rounded-md transition-colors shadow-sm"
+          onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
+        >
+          Next
+        </button>
+      </div>
       <div className="grid grid-cols-7 gap-1 mb-1">
         {daysOfWeek.map((day) => (
           <div className="text-center ">{day}</div>
@@ -39,7 +58,7 @@ export default function CalendarView({ workout }) {
               <div className="text-center mb-1">
                 {isToday(day) ? "TODAY" : date}
               </div>
-              <div className="h-[calc(100%)] overflow-y-auto p-1">
+              <div className="h-[calc(100%-30px)] overflow-y-auto p-1 pb-6">
                 {workout.length > 0 ? (
                   <div className="space-y-1">
                     {workout.map((item, index) =>
@@ -53,7 +72,19 @@ export default function CalendarView({ workout }) {
                           </li>
                           <li className="text-gray-600">Sets: {item.sets}</li>
                           <li className="text-gray-600">Reps: {item.reps}</li>
-                          <button>Edit </button>
+                          <button
+                            className="
+                                      mt-2 px-2 py-1 
+                                      bg-blue-100 hover:bg-blue-200 
+                                      text-blue-800 
+                                      text-xs font-medium 
+                                      rounded-md 
+                                      transition-colors
+                                      shadow-sm
+                                    "
+                          >
+                            Edit
+                          </button>
                         </div>
                       ) : (
                         <p>{null}</p>

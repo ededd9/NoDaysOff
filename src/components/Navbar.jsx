@@ -3,10 +3,18 @@ import { Link } from "react-router-dom";
 import "./Navbar.css";
 import { useState } from "react";
 import WorkoutForm from "./WorkoutForm";
-
+import SignUpForm from "./auth/SignUpForm";
 export default function Navbar({ setWorkout, exercises, setExercises }) {
   const [showForm, setShowForm] = useState(false);
+  const [showSignUp, setShowSignUp] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [loginPopUp, setloginPopUp] = useState(false);
 
+  const handleSignUp = () => {
+    console.log("User signed in");
+    setIsLoggedIn(true);
+    setShowSignUp(false);
+  };
   return (
     <>
       {showForm && (
@@ -18,6 +26,7 @@ export default function Navbar({ setWorkout, exercises, setExercises }) {
           onClose={() => setShowForm(false)}
         />
       )}
+      {showSignUp && <SignUpForm onClose={() => setShowSignUp(false)} />}
 
       <div className="fixed top-0 left-0 right-0 bg-gray-900 shadow-lg z-50">
         <div className="max-w-6xl mx-auto px-4">
@@ -55,6 +64,22 @@ export default function Navbar({ setWorkout, exercises, setExercises }) {
               >
                 Profile
               </Link>
+              <Link
+                to="/WorkoutSplit"
+                className="text-gray-300 hover:text-white font-medium transition-colors duration-200"
+              >
+                Workout Split
+              </Link>
+              {isLoggedIn ? (
+                "User is logged in"
+              ) : (
+                <button
+                  className="text-white"
+                  onClick={() => setShowSignUp(true)}
+                >
+                  Sign Up
+                </button>
+              )}
             </div>
           </div>
         </div>

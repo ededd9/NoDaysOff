@@ -14,7 +14,7 @@ app.get("/", (req, res) => req.send("MONGODB CONNECTED"));
 const PORT = process.env.PORT || 5000;
 //Routes
 app.use("/api/auth", authRoutes);
-
+//know what port is being used
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

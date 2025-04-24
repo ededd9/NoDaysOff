@@ -4,6 +4,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Dashboard from "./pages/Dashboard";
 import WorkoutStats from "./pages/WorkoutStats";
+import WorkoutSplit from "./pages/WorkoutSplit";
 function App() {
   //hierarchy of prop drilling
   const [exercises, setExercises] = useState({
@@ -14,6 +15,7 @@ function App() {
     date: "",
   });
   const [workout, setWorkout] = useState([]);
+  const [split, setSplit] = useState("");
   return (
     <BrowserRouter>
       <Navbar
@@ -28,6 +30,14 @@ function App() {
           element={
             <div>
               <WorkoutStats />
+            </div>
+          }
+        />
+        <Route
+          path="/WorkoutSplit"
+          element={
+            <div>
+              <WorkoutSplit split={split} setSplit={setSplit} />
             </div>
           }
         />

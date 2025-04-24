@@ -16,8 +16,6 @@ export default function CalendarView({ workout }) {
   const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
   const currentDate = new Date();
   const currentDayIndex = currentDate.getDay();
-  console.log(currentDate);
-  console.log({ workout });
   return (
     <>
       <div>CalendarView</div>

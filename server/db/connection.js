@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import { config } from "dotenv";
 
 config();
-
+//connecting to DB
 const connectDB = async () => {
   try {
     console.log("TRYING TO CONNECT PRIOR");

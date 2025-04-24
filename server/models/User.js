@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import argon2 from "argon2";
-
+//user schema
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true, lowercase: true },

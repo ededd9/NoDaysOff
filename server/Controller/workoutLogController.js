@@ -1,3 +1,6 @@
+// controllers/workoutLogController.js
+import mongoose from "mongoose";
+import Workout from "../models/Workout.js";
 import User from "../models/User.js";
 
 export const addWorkoutLog = async (req, res) => {
@@ -5,40 +8,44 @@ export const addWorkoutLog = async (req, res) => {
     const { date, name, sets, reps, weight } = req.body;
     const userId = req.user._id;
 
-    // Create the exercise with sets
+    // Validate input
+    if (!date || !name || !sets || !reps || !weight) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
     const exercise = {
       name,
-      sets: Array.from({ length: sets }, (_, i) => ({
+      sets: Array.from({ length: parseInt(sets) }, (_, i) => ({
         setNumber: i + 1,
         reps: parseInt(reps),
         weight: parseFloat(weight),
       })),
     };
 
-    // Find or create workout log for this date
-    const user = await User.findById(userId);
-
-    // Check if workout exists for this date
-    const workoutIndex = user.workoutLog.findIndex(
-      (log) => log.date.toISOString().split("T")[0] === date
+    // Upsert workout
+    const workout = await Workout.findOneAndUpdate(
+      { user: userId, date: new Date(date) },
+      { $push: { exercises: exercise } },
+      { new: true, upsert: true }
     );
 
-    if (workoutIndex >= 0) {
-      // Add to existing workout
-      user.workoutLog[workoutIndex].exercises.push(exercise);
-    } else {
-      // Create new workout
-      user.workoutLog.push({
-        date: new Date(date),
-        exercises: [exercise],
+    // Only update user ref if new workout
+    if (workout.$isNew) {
+      await User.findByIdAndUpdate(userId, {
+        $addToSet: { workoutLog: workout._id },
       });
     }
 
-    await user.save();
-    res.status(201).json({ success: true });
-    console.log("Sucess in adding workout!");
+    res.status(200).json({
+      success: true,
+      message: workout.$isNew ? "Workout created" : "Exercise added",
+      workout,
+    });
   } catch (error) {
-    console.error("Error adding workout:", error);
-    res.status(400).json({ message: error.message });
+    console.error("Error:", error);
+    res.status(500).json({
+      message: "Failed to save workout",
+      error: error.message,
+    });
   }
 };

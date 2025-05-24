@@ -1,5 +1,6 @@
 import { useState } from "react";
-export default function WorkoutForm({ onSubmit }) {
+import axios from "axios";
+export default function WorkoutForm({ onSubmit, onClose }) {
   const date = new Date();
   const month = date.getMonth() + 1;
   const [day, setDay] = useState("");
@@ -9,19 +10,49 @@ export default function WorkoutForm({ onSubmit }) {
     weight: 0,
     reps: 1,
     sets: 1,
-    date: "",
+    date: new Date().toISOString().split("T")[0],
   });
   const [dateOfWorkout, setDateOfWorkout] = useState("");
+
   const handleChange = (e) => {
-    setExercises((prev) => ({ ...prev, date: e.target.value }));
-    setDay(exercises.date);
-    console.log(exercises.date);
+    //seperate the target into name of element and its value
+    const { name, value } = e.target;
+    //update current exercise with its new value(e.g. name, weight, reps , set,date)
+    setExercises((prev) => ({ ...prev, [name]: value }));
   };
-  const handleSubmit = (e) => {
+  //when form is submitted, send new workout exercise for the day to API endpoint, log
+  //if saved, if error occured log error
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSubmit(exercises); // Send data back to parent
-    setExercises({ name: "", weight: 0, reps: 0, sets: 0, date: "" }); // Reset form
-    setDay("");
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("No authentication token found. Please log in.");
+      }
+      await axios.post(
+        "http://localhost:5050/api/workouts",
+        {
+          date: new Date(exercises.date).toISOString(),
+          name: exercises.name,
+          sets: exercises.sets,
+          reps: exercises.reps,
+          weight: exercises.weight,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      console.log("Workout saved:", exercises);
+      setExercises({ name: "", weight: 0, reps: 0, sets: 0, date: "" }); // Reset form
+      setDay("");
+    } catch (error) {
+      console.log("error saving workout", error);
+    }
+
+    onSubmit();
   };
 
   return (
@@ -34,12 +65,11 @@ export default function WorkoutForm({ onSubmit }) {
             </label>
             <input
               required
+              name="name"
               className="w-full px-3 py-2 border border-gray-300 rounded-md"
               placeholder="e.g. Bench Press"
               value={exercises.name}
-              onChange={(e) =>
-                setExercises((prev) => ({ ...prev, name: e.target.value }))
-              }
+              onChange={handleChange}
             />
           </div>
 
@@ -51,12 +81,11 @@ export default function WorkoutForm({ onSubmit }) {
             <input
               required
               type="number"
+              name="weight"
               className="w-full px-3 py-2 border border-gray-300 rounded-md"
               placeholder="e.g. 135"
               value={exercises.weight}
-              onChange={(e) =>
-                setExercises((prev) => ({ ...prev, weight: e.target.value }))
-              }
+              onChange={handleChange}
             />
           </div>
 
@@ -69,14 +98,10 @@ export default function WorkoutForm({ onSubmit }) {
               </label>
               <select
                 required
+                name="sets"
                 className="w-full px-4 py-2 border border-gray-300 rounded-md"
                 value={exercises.sets}
-                onChange={(e) =>
-                  setExercises((prev) => ({
-                    ...prev,
-                    sets: parseInt(e.target.value),
-                  }))
-                }
+                onChange={handleChange}
               >
                 {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
                   <option key={num} value={num}>
@@ -93,14 +118,10 @@ export default function WorkoutForm({ onSubmit }) {
               </label>
               <select
                 required
+                name="reps"
                 className="w-full px-4 py-2 border border-gray-300 rounded-md"
                 value={exercises.reps}
-                onChange={(e) =>
-                  setExercises((prev) => ({
-                    ...prev,
-                    reps: parseInt(e.target.value),
-                  }))
-                }
+                onChange={handleChange}
               >
                 {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15].map(
                   (num) => (
@@ -114,18 +135,20 @@ export default function WorkoutForm({ onSubmit }) {
           </div>
           <label className="block text-gray-700 text-sm font-bold mb-2">
             Date of Workout :{" "}
-            <input
-              type="date"
-              onChange={(e) =>
-                setExercises((prev) => ({ ...prev, date: e.target.value }))
-              }
-            ></input>
+            <input type="date" name="date" onChange={handleChange}></input>
           </label>
           <button
             type="submit"
             className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
           >
             Save Workout
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
+          >
+            Close
           </button>
         </form>
       </div>

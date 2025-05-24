@@ -1,5 +1,7 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import WorkoutForm from "./WorkoutForm";
+import { useAuth } from "../context/authContext";
+import axios from "axios";
 import {
   isToday,
   format,
@@ -10,7 +12,8 @@ import {
   subMonths,
 } from "date-fns";
 import { monthsInQuarter } from "date-fns/constants";
-export default function CalendarView({ workout }) {
+import WorkoutModal from "./WorkoutModal";
+export default function CalendarView({ workout, fullUser }) {
   const [isEditing, setIsEditing] = useState(false);
   const daysOfWeek = ["Sun", "Mon", "Tues", "Wed", "Thu", "Fri", "Sat"];
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -19,6 +22,9 @@ export default function CalendarView({ workout }) {
   const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
   const currentDate = new Date();
   const currentDayIndex = currentDate.getDay();
+  const [selectedWorkouts, setSelectedWorkouts] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   return (
     <>
       <div>CalendarView</div>
@@ -43,6 +49,7 @@ export default function CalendarView({ workout }) {
           <div className="text-center ">{day}</div>
         ))}
       </div>
+
       <div className="grid grid-cols-7 gap-2 w-full">
         {daysInMonth.map((day) => {
           const date = format(day, "yyyy-MM-dd");
@@ -50,57 +57,46 @@ export default function CalendarView({ workout }) {
           //fix the logic in ordering current date at top
           return (
             <div
-              className={`text-center font-small h-[150px] overflow-hidden text-sm py-1
+              className={`text-center cursor-pointer font-small h-[150px] overflow-hidden text-sm py-1
                 aspect-square w-full border rounded-md ${
-                  isToday(day) ? "bg-blue-50 font-bold" : "bg-white"
+                  isToday(day)
+                    ? "bg-blue-200 font-bold"
+                    : fullUser.some((item) => date === item.date?.split("T")[0])
+                    ? "bg-green-100"
+                    : "bg-red-100"
                 }`}
+              onClick={() => {
+                const workoutsForDate = fullUser.filter(
+                  (item) => date === item.date?.split("T")[0]
+                );
+                setSelectedWorkouts(workoutsForDate);
+                console.log(
+                  `Inside Calendar View: Workouts for ${date}:`,
+                  workoutsForDate
+                );
+                setIsModalOpen(true);
+              }}
             >
               <div className="text-center mb-1">
                 {isToday(day) ? "TODAY" : date}
               </div>
-              <div className="h-[calc(100%-30px)] overflow-y-auto p-1 pb-6">
-                {workout.length > 0 ? (
-                  <div className="space-y-1">
-                    {workout.map((item, index) =>
-                      date == item.date ? (
-                        <div key={index} className="mb-6 last:mb-0">
-                          <h7 className="text-l font-bold text-gray-800">
-                            {item.name}
-                          </h7>
-                          <li className="text-gray-600">
-                            Weight: {item.weight} lbs
-                          </li>
-                          <li className="text-gray-600">Sets: {item.sets}</li>
-                          <li className="text-gray-600">Reps: {item.reps}</li>
-                          <button
-                            className="
-                                      mt-2 px-2 py-1 
-                                      bg-blue-100 hover:bg-blue-200 
-                                      text-blue-800 
-                                      text-xs font-medium 
-                                      rounded-md 
-                                      transition-colors
-                                      shadow-sm
-                                    "
-                          >
-                            Edit
-                          </button>
-                        </div>
-                      ) : (
-                        <p>{null}</p>
-                      )
-                    )}
-                  </div>
-                ) : (
-                  <p className="text-gray-500 text-center">
-                    No workouts recorded yet
-                  </p>
-                )}
-              </div>
+              <div
+                className={`h-[calc(100%-30px)] overflow-y-auto p-1 pb-6 ${
+                  fullUser.some((item) => date === item.date?.split("T")[0])
+                    ? "bg-green-100"
+                    : "bg-red-100"
+                }`}
+              />
             </div>
           );
         })}
       </div>
+      {isModalOpen && (
+        <WorkoutModal
+          workouts={selectedWorkouts}
+          onClose={() => setIsModalOpen(false)}
+        />
+      )}
     </>
   );
 }

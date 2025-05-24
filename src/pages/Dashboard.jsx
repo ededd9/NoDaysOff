@@ -3,7 +3,9 @@ import Navbar from "../components/Navbar";
 import CalendarView from "../components/CalendarView";
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-export default function Dashboard({ workout }) {
+import { useAuth } from "../context/authContext";
+export default function Dashboard({ workout, fullUser }) {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("/");
   const [showForm, setShowForm] = useState(false);
   const date = new Date();
@@ -14,10 +16,11 @@ export default function Dashboard({ workout }) {
         <div className="text-center text-gray-700">
           <h1 className="text-2xl font-semibold">
             Today's Date: {date.toLocaleDateString()}
+            {user ? `Welcome ${user.name}` : "Please log in"}
           </h1>
         </div>
-        {/* </div> */}
-        <CalendarView workout={workout} />
+
+        <CalendarView workout={workout} fullUser={fullUser} />
       </div>
     </>
   );

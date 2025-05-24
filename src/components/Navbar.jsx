@@ -4,17 +4,18 @@ import "./Navbar.css";
 import { useState } from "react";
 import WorkoutForm from "./WorkoutForm";
 import SignUpForm from "./auth/SignUpForm";
-export default function Navbar({ setWorkout, exercises, setExercises }) {
+import AuthModal from "./auth/AuthModal";
+import { useAuth } from "../context/authContext";
+export default function Navbar({
+  setWorkout,
+  exercises,
+  setExercises,
+  fetchUser,
+}) {
   const [showForm, setShowForm] = useState(false);
-  const [showSignUp, setShowSignUp] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [loginPopUp, setloginPopUp] = useState(false);
-
-  const handleSignUp = () => {
-    console.log("User signed in");
-    setIsLoggedIn(true);
-    setShowSignUp(false);
-  };
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authFormType, setAuthFormType] = useState("signup");
+  const { user, logout } = useAuth();
   return (
     <>
       {showForm && (
@@ -22,11 +23,11 @@ export default function Navbar({ setWorkout, exercises, setExercises }) {
           onSubmit={(newExercise) => {
             setWorkout((prev) => [...prev, newExercise]);
             setShowForm(false);
+            fetchUser();
           }}
           onClose={() => setShowForm(false)}
         />
       )}
-      {showSignUp && <SignUpForm onClose={() => setShowSignUp(false)} />}
 
       <div className="fixed top-0 left-0 right-0 bg-gray-900 shadow-lg z-50">
         <div className="max-w-6xl mx-auto px-4">
@@ -44,12 +45,6 @@ export default function Navbar({ setWorkout, exercises, setExercises }) {
               >
                 Progression
               </Link>
-              {/* <Link
-              to="/AddWorkout"
-              className="text-gray-300 hover:text-white font-medium transition-colors duration-200"
-            > */}
-              {/* Add Workout
-            </Link> */}
 
               <button
                 variant="primary"
@@ -70,15 +65,29 @@ export default function Navbar({ setWorkout, exercises, setExercises }) {
               >
                 Workout Split
               </Link>
-              {isLoggedIn ? (
-                "User is logged in"
+              {user ? (
+                <button
+                  className="text-gray-300 hover:text-white font-medium transition-colors duration-200"
+                  onClick={logout}
+                >
+                  Log out
+                </button>
               ) : (
                 <button
                   className="text-white"
-                  onClick={() => setShowSignUp(true)}
+                  onClick={() => {
+                    setShowAuthModal(true);
+                  }}
                 >
                   Sign Up
                 </button>
+              )}
+
+              {showAuthModal && (
+                <AuthModal
+                  // initialForm={authFormType}
+                  onClose={() => setShowAuthModal(false)}
+                />
               )}
             </div>
           </div>

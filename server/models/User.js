@@ -1,67 +1,12 @@
 import mongoose from "mongoose";
 import argon2 from "argon2";
 
-const exerciseSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
-    enum: [
-      "Tricep Extensions",
-      "Incline Bench Press",
-      "Chest Flys",
-      "Deadlift",
-      "Other",
-    ],
-    index: true,
-  },
-  customName: {
-    type: String,
-    validate: {
-      validator: function (v) {
-        return this.name !== "Other" || (v && v.length > 0);
-      },
-    },
-    message: "Custom exercise name",
-  },
-  sets: [
-    {
-      setNumber: {
-        type: Number,
-        required: true,
-        min: 1,
-      },
-      reps: {
-        type: Number,
-        required: true,
-        min: 1,
-      },
-      weight: {
-        type: Number,
-        required: true,
-        min: 0,
-      },
-    },
-  ],
-});
-
-const workoutLogSchema = new mongoose.Schema(
-  {
-    date: {
-      type: Date,
-      required: true,
-      unique: true,
-      index: true,
-    },
-    exercises: [exerciseSchema],
-  },
-  { timestamps: true }
-);
 //user schema
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true, lowercase: true },
   password: { type: String, required: true, minlength: 6, select: false },
-  workoutLog: [workoutLogSchema],
+  workoutLog: [{type: mongoose.Schema.Types.ObjectId,ref:"Workout"}],
 });
 
 userSchema.pre("save", async function (next) {

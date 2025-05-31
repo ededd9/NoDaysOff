@@ -1,7 +1,8 @@
 import React from "react";
-import { useState } from "react";
-
-export default function SignUpForm({ onClose }) {
+import { useState, useContext } from "react";
+import { userContext } from "../../context/authContext";
+export default function SignUpForm({ onClose, onSwitchToLogin }) {
+  const { login } = useContext(userContext);
   const [signUpData, setSignUpData] = useState({
     name: "",
     email: "",
@@ -9,6 +10,7 @@ export default function SignUpForm({ onClose }) {
   });
   const handleSubmit = async (e) => {
     e.preventDefault();
+    //handle any errors when user signs up
     try {
       const response = await fetch("http://localhost:5050/api/auth/signup", {
         method: "POST",
@@ -83,6 +85,7 @@ export default function SignUpForm({ onClose }) {
             <button
               type="button"
               className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition"
+              onClick={() => onClose()}
             >
               Cancel
             </button>
@@ -99,6 +102,10 @@ export default function SignUpForm({ onClose }) {
               <button
                 type="button"
                 className="font-medium text-blue-600 hover:text-blue-500 hover:underline focus:outline-none"
+                onClick={() => {
+                  onSwitchToLogin();
+                  console.log("SIGN IN CLICK");
+                }}
               >
                 Sign in
               </button>

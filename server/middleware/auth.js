@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 
 export const protect = async (req, res, next) => {
+  console.log("Auth Header:", req.headers.authorization);
   try {
     // 1) Get token from header
     const token = req.headers.authorization?.split(" ")[1];
@@ -13,7 +14,7 @@ export const protect = async (req, res, next) => {
     }
 
     // 2) Verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.ACCESS_SECRET);
 
     // 3) Get user from database
     const user = await User.findById(decoded.id).select("-password");

@@ -13,7 +13,7 @@ import {
 } from "date-fns";
 import { monthsInQuarter } from "date-fns/constants";
 import WorkoutModal from "./WorkoutModal";
-export default function CalendarView({ workout, fullUser }) {
+export default function CalendarView({ workout, fullUser, fetchUser }) {
   const [isEditing, setIsEditing] = useState(false);
   const daysOfWeek = ["Sun", "Mon", "Tues", "Wed", "Thu", "Fri", "Sat"];
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -45,18 +45,21 @@ export default function CalendarView({ workout, fullUser }) {
         </button>
       </div>
       <div className="grid grid-cols-7 gap-1 mb-1">
-        {daysOfWeek.map((day) => (
-          <div className="text-center ">{day}</div>
+        {daysOfWeek.map((day, i) => (
+          <div className="text-center " key={i}>
+            {day}
+          </div>
         ))}
       </div>
 
       <div className="grid grid-cols-7 gap-2 w-full">
-        {daysInMonth.map((day) => {
+        {daysInMonth.map((day, i) => {
           const date = format(day, "yyyy-MM-dd");
 
           //fix the logic in ordering current date at top
           return (
             <div
+              key={i}
               className={`text-center cursor-pointer font-small h-[150px] overflow-hidden text-sm py-1
                 aspect-square w-full border rounded-md ${
                   isToday(day)
@@ -95,6 +98,7 @@ export default function CalendarView({ workout, fullUser }) {
         <WorkoutModal
           workouts={selectedWorkouts}
           onClose={() => setIsModalOpen(false)}
+          fetchUser={fetchUser}
         />
       )}
     </>

@@ -4,7 +4,7 @@ import CalendarView from "../components/CalendarView";
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/authContext";
-export default function Dashboard({ workout, fullUser }) {
+export default function Dashboard({ workout, fullUser, fetchUser }) {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("/");
   const [showForm, setShowForm] = useState(false);
@@ -20,7 +20,11 @@ export default function Dashboard({ workout, fullUser }) {
           </h1>
         </div>
 
-        <CalendarView workout={workout} fullUser={fullUser} />
+        <CalendarView
+          workout={workout}
+          fullUser={fullUser}
+          fetchUser={fetchUser}
+        />
       </div>
     </>
   );

@@ -1,10 +1,17 @@
 import React from "react";
-import { useContext, createContext, useState } from "react";
+import { useContext, createContext, useState, useEffect } from "react";
 export const userContext = createContext();
 
 export default function AuthContext({ children }) {
   //user is logged out so user is null
   const [user, setUser] = useState(null);
+  //check if user has already been logged in, if so, then when page refreshes, keep user state logged in
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
   //login user state
   const login = (userData) => {
     setUser(userData);

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 export default function WorkoutForm({ onSubmit, onClose }) {
   const date = new Date();
@@ -13,7 +13,62 @@ export default function WorkoutForm({ onSubmit, onClose }) {
     date: new Date().toISOString().split("T")[0],
   });
   const [dateOfWorkout, setDateOfWorkout] = useState("");
+  //states used for searching,filtering a name from exercises names db
+  const [exerciseNamesList, setExerciseNamesList] = useState([]);
+  const [filteredExerciseNames, setFilteredExerciseNames] = useState([]);
+  const [showDropDown, setShowDropDown] = useState(false);
+  const [loadingExercises, setLoadingExercises] = useState(true);
 
+  useEffect(() => {
+    const getExercisesFromDB = async () => {
+      try {
+        //first grab only the names of the exercises, should be around 800ish unfiltered names
+        const response = await fetch(
+          "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/dist/exercises.json"
+        );
+        const data = await response.json();
+        const names = data.map((exercise) => exercise.name);
+        setExerciseNamesList(names);
+        setLoadingExercises(false);
+      } catch (err) {
+        console.log("Some error occured fetching exercises:", err);
+        setLoadingExercises(false);
+      }
+    };
+    getExercisesFromDB();
+  }, []);
+
+  useEffect(() => {
+    //dont do nothing if user is not searching anything(not typing in name input field)
+    if (exercises.name.trim() === "") {
+      setFilteredExerciseNames([]);
+      setShowDropDown(false);
+      return;
+    }
+    console.log(exerciseNamesList);
+    //filter the results as the field changes
+    const filtered = exerciseNamesList.filter((exercise) =>
+      exercise.toLowerCase().includes(exercises.name.toLowerCase())
+    );
+    setFilteredExerciseNames(filtered.slice(0, 10));
+    setShowDropDown(filtered.length > 0);
+    console.log(filteredExerciseNames);
+  }, [exercises.name, exerciseNamesList]);
+
+  //handle exercise selection from dropdown
+  const handleExerciseSelect = (exerciseName) => {
+    setExercises((prev) => ({ ...prev, name: exerciseName }));
+  };
+  //show dropdown if there is a match in users exercise name request
+  const handleExerciseInputFocus = () => {
+    if (filteredExerciseNames.length > 0) {
+      setShowDropDown(true);
+    }
+  };
+  //input blur to hide dropdown when an exercise is selected
+  const handleExerciseInputBlur = () => {
+    setTimeout(() => setShowDropDown(false), 200);
+  };
   const handleChange = (e) => {
     //seperate the target into name of element and its value
     const { name, value } = e.target;
@@ -57,9 +112,9 @@ export default function WorkoutForm({ onSubmit, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md mx-4">
+      <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
         <form onSubmit={handleSubmit}>
-          <div className="mb-4">
+          <div className="mb-4 relative">
             <label className="block text-gray-700 text-sm font-bold mb-2">
               Exercise Name
             </label>
@@ -67,10 +122,29 @@ export default function WorkoutForm({ onSubmit, onClose }) {
               required
               name="name"
               className="w-full px-3 py-2 border border-gray-300 rounded-md"
-              placeholder="e.g. Bench Press"
+              placeholder={
+                loadingExercises ? "Loading..." : "Search exercises DB"
+              }
               value={exercises.name}
               onChange={handleChange}
+              onFocus={handleExerciseInputFocus}
+              onBlur={handleExerciseInputBlur}
+              disabled={loadingExercises}
+              autocomplete="off"
             />
+            {showDropDown && (
+              <div className="absolute z-20 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-40 overflow-y-auto">
+                {filteredExerciseNames.map((exercise, index) => (
+                  <div
+                    key={index}
+                    onClick={() => handleExerciseSelect(exercise)}
+                    className="px-3 py-2 cursor-pointer hover:bg-blue-50 border-b border-gray-100 last:border-b-0 text-sm"
+                  >
+                    {exercise}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Weight */}

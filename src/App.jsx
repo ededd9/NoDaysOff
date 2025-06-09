@@ -5,7 +5,9 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Dashboard from "./pages/Dashboard";
 import WorkoutStats from "./pages/WorkoutStats";
 import WorkoutSplit from "./pages/WorkoutSplit";
+import Progress from "./pages/Progress";
 import { useAuth } from "./context/authContext";
+import Profile from "./pages/Profile";
 import axios from "axios";
 
 function App() {
@@ -91,12 +93,28 @@ function App() {
               <WorkoutStats />
             </div>
           }
+        />{" "}
+        <Route
+          path="/Profile"
+          element={
+            <div>
+              <Profile />
+            </div>
+          }
         />
         <Route
           path="/WorkoutSplit"
           element={
             <div>
               <WorkoutSplit split={split} setSplit={setSplit} />
+            </div>
+          }
+        />
+        <Route
+          path="/Progression"
+          element={
+            <div>
+              <Progress fullUser={fullUser} />
             </div>
           }
         />

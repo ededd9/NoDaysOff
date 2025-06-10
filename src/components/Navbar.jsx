@@ -43,7 +43,7 @@ export default function Navbar({
                 to="/Stats"
                 className="text-gray-300 hover:text-white font-medium transition-colors duration-200"
               >
-                Progression
+                Feed
               </Link>
 
               <button
@@ -53,6 +53,12 @@ export default function Navbar({
               >
                 Add Workout
               </button>
+              <Link
+                to="/Progression"
+                className="text-gray-300 hover:text-white font-medium transition-colors duration-200"
+              >
+                Progress
+              </Link>
               <Link
                 to="/Profile"
                 className="text-gray-300 hover:text-white font-medium transition-colors duration-200"

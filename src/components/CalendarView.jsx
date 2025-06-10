@@ -13,6 +13,7 @@ import {
 } from "date-fns";
 import { monthsInQuarter } from "date-fns/constants";
 import WorkoutModal from "./WorkoutModal";
+import EditForm from "./EditForm";
 export default function CalendarView({ workout, fullUser, fetchUser }) {
   const [isEditing, setIsEditing] = useState(false);
   const daysOfWeek = ["Sun", "Mon", "Tues", "Wed", "Thu", "Fri", "Sat"];

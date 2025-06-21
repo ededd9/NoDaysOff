@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "../context/authContext";
 import CreateFeedPost from "../components/CreateFeedPost";
 import axios from "axios";
@@ -35,6 +36,9 @@ export default function Feed() {
     fetchFeed();
   }, []);
   const handleSubmit = async (e) => {
+    if (postContent === "") {
+      alert("Can't post nothing !");
+    }
     e.preventDefault();
     try {
       const { data } = await axios.post(
@@ -59,11 +63,12 @@ export default function Feed() {
 
   const handleDelete = async (id) => {
     try {
-      let res = await axios.delete(`http://localhost:5050/api/posts/${id}`, {
+      await axios.delete(`http://localhost:5050/api/posts/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
         withCredentials: "true",
       });
+      setPosts((prevPosts) => prevPosts.filter((post) => post._id !== id));
       console.log("Deleted successfully.");
     } catch (err) {
       console.log(err);
@@ -82,7 +87,7 @@ export default function Feed() {
           <form onSubmit={handleSubmit}>
             <div className="bg-white p-6 rounded-lg shadow-md">
               <h2 className="text-xl font-bold mb-4">
-                What's on your mind {user ? user.name : null}?
+                What's on your mind {user ? user.name.split(" ")[0] : null}?
               </h2>
               <textarea
                 placeholder="What's on your mind?"
@@ -123,10 +128,16 @@ export default function Feed() {
           {posts.map((post) => (
             <div key={post._id} className="bg-white p-6 rounded-lg shadow-md">
               <div className="flex items-center mb-4">
-                <div className="w-10 h-10 bg-gray-300 rounded-full mr-3"></div>
+                <Link to={`/Profile/${post.user._id}`}>
+                  <div className="w-10 h-10 bg-gray-300 rounded-full mr-3"></div>
+                </Link>
                 <div>
-                  <h3 className="font-bold">{post.user.name}</h3>
-                  <p className="text-gray-500 text-sm">{post.createdAt}</p>
+                  <h3 className="font-bold">{post.user.name.split(" ")[0]}</h3>
+                  <p className="text-gray-500 text-sm">
+                    {new Date(post.createdAt).toLocaleString("en-US", {
+                      timeZone: "America/New_York",
+                    })}
+                  </p>
                 </div>
               </div>
 

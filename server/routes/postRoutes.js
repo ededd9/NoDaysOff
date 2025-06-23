@@ -6,6 +6,32 @@ import { createPost } from "../Controller/postLogController.js";
 import { model } from "mongoose";
 const router = express.Router();
 router.use(protect);
+
+router.put("/:id/like", async (req, res) => {
+  try {
+    const postId = req.params.id;
+    const userId = req.user.id;
+    const post = await Post.findById(postId);
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+    const hasLiked = post.likes.includes(userId);
+    if (hasLiked) {
+      post.likes.pull(userId);
+    } else {
+      post.likes.push(userId);
+    }
+    await post.save();
+    await post.populate("user", "name");
+    res.json({
+      status: "success",
+      data: post,
+      action: hasLiked ? "unliked" : "liked",
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
 //get all posts route(for feed page)
 router.get("/feed", async (req, res) => {
   try {
@@ -28,7 +54,17 @@ router.get("/", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
+//get posts from another user
+router.get("/user/:id", async (req, res) => {
+  try {
+    const posts = await Post.find({ user: req.params.id })
+      .sort({ createdAt: -1 })
+      .populate("user");
+    res.status(200).json(posts);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 //get a single post from a user
 router.get("/:id", async (req, res) => {
   try {
@@ -68,4 +104,5 @@ router.delete("/:id", async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 });
+
 export default router;

@@ -8,7 +8,11 @@ export default function Feed() {
   const [posts, setPosts] = useState([]);
   const [postContent, setPostContent] = useState("");
   const [creatingPost, setCreatingPost] = useState(false);
-  let token = localStorage.getItem("token");
+  const [filters, setFilters] = useState({
+    recent: false,
+    popular: false,
+    following: false,
+  });
   //context
   const { user } = useAuth();
 
@@ -76,7 +80,34 @@ export default function Feed() {
   };
   console.log("Posts:", posts);
   //console.log("current post added: ", postContent);
-
+  //handle liking/unliking a post
+  const handleLike = async (id) => {
+    try {
+      //url, data, config
+      const response = await axios.put(
+        `http://localhost:5050/api/posts/${id}/like`,
+        {}, //not sending data so {}
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          withCredentials: "true",
+        }
+      );
+      //if can access like endpoint, check if the current post id matches the
+      //post the user is trying to like , update only the like attribute of the post, if not, then
+      //dont modify the post at all and return it
+      if (response.data.status === "success") {
+        setPosts((prevPosts) =>
+          prevPosts.map((post) =>
+            post._id === id
+              ? { ...post, likes: response.data.data.likes }
+              : post
+          )
+        );
+      }
+    } catch (err) {
+      console.log("Error in liking post: ", err);
+    }
+  };
   return (
     <div className="pt-20 min-h-screen bg-gray-100">
       {/* Main Grid Container */}
@@ -95,7 +126,13 @@ export default function Feed() {
                 rows="4"
                 value={postContent}
                 onChange={(e) => setPostContent(e.target.value)}
+                maxLength={1000}
               />
+              <div className="text-sm text-gray-500 mb-1">
+                {postContent.length < 1000
+                  ? postContent.length
+                  : "Cannot exceed 1000 characters"}
+              </div>
               <button className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600">
                 Post
               </button>
@@ -140,7 +177,15 @@ export default function Feed() {
                   </p>
                 </div>
               </div>
-
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => handleLike(post._id)}
+                  className="text-xs bg-green-100 text-green-600 px-1 py-1 rounded hover:bg-green-200 transition"
+                >
+                  🤍
+                  {post.likes.length}
+                </button>
+              </div>
               {user && user.id === post.user._id && (
                 <div className="flex space-x-2">
                   <button

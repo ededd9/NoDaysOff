@@ -3,12 +3,13 @@ import Navbar from "./components/Navbar";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Dashboard from "./pages/Dashboard";
-import WorkoutStats from "./pages/WorkoutStats";
 import WorkoutSplit from "./pages/WorkoutSplit";
+import Feed from "./pages/Feed";
 import Progress from "./pages/Progress";
 import { useAuth } from "./context/authContext";
 import Profile from "./pages/Profile";
 import axios from "axios";
+import ProtectedRoutes from "./components/ProtectedRoutes";
 
 function App() {
   //hierarchy of prop drilling
@@ -24,9 +25,21 @@ function App() {
   const { user } = useAuth();
   const [fullUser, setFullUser] = useState([]);
   const fetchUser = async () => {
+    const token = localStorage.getItem("token");
     //try to load user workouts
+    if (!token || !user) {
+      setFullUser([]); // Clear data if no token
+      setWorkout([]);
+      setExercises({
+        name: "",
+        weight: 0,
+        reps: 0,
+        sets: 0,
+        date: "",
+      });
+      return;
+    }
     try {
-      const token = localStorage.getItem("token");
       const response = await axios.get(`http://localhost:5050/api/workouts`, {
         headers: { Authorization: `Bearer ${token}` },
         withCredentials: true,
@@ -62,17 +75,52 @@ function App() {
           }
         } catch (err) {
           console.error("Refresh failed:", err);
+          setFullUser([]);
+          setWorkout([]);
+          setExercises({
+            name: "",
+            weight: 0,
+            reps: 0,
+            sets: 0,
+            date: "",
+          });
         }
       }
     }
   };
-
+  //check if a user is logged in(check if there is a "user" and that user has a token), if not,
+  //set state to null and everything is an empty state
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (user && user.id && token) {
+
+    // Always call fetchUser to either fetch data or clear it
+    if (user === null) {
+      // User is explicitly logged out
+      setFullUser([]);
+      setWorkout([]);
+      setExercises({
+        name: "",
+        weight: 0,
+        reps: 0,
+        sets: 0,
+        date: "",
+      });
+    } else if (user && user.id && token) {
+      // User is logged in and has token
       fetchUser();
+    } else if (!token) {
+      // No token available
+      setFullUser([]);
+      setWorkout([]);
+      setExercises({
+        name: "",
+        weight: 0,
+        reps: 0,
+        sets: 0,
+        date: "",
+      });
     }
-  }, [user]);
+  }, [user]); // Only depend on user changes
   return (
     <BrowserRouter>
       <Navbar
@@ -84,38 +132,49 @@ function App() {
       <Routes>
         <Route
           path="/home"
-          element={<Dashboard fullUser={fullUser} fetchUser={fetchUser} />}
-        />
-        <Route
-          path="/statistics"
           element={
-            <div>
-              <WorkoutStats />
-            </div>
-          }
-        />{" "}
-        <Route
-          path="/Profile"
-          element={
-            <div>
-              <Profile />
-            </div>
+            <ProtectedRoutes>
+              <Dashboard fullUser={fullUser} fetchUser={fetchUser} />{" "}
+            </ProtectedRoutes>
           }
         />
+
         <Route
+          path="/Profile/:userId"
+          element={
+            <ProtectedRoutes>
+              <div>
+                <Profile />
+              </div>
+            </ProtectedRoutes>
+          }
+        />
+        <Route
+          path="/Feed"
+          element={
+            <ProtectedRoutes>
+              <div>
+                <Feed />
+              </div>
+            </ProtectedRoutes>
+          }
+        />
+        {/* <Route
           path="/WorkoutSplit"
           element={
             <div>
               <WorkoutSplit split={split} setSplit={setSplit} />
             </div>
           }
-        />
+        /> */}
         <Route
           path="/Progression"
           element={
-            <div>
-              <Progress fullUser={fullUser} />
-            </div>
+            <ProtectedRoutes>
+              <div>
+                <Progress fullUser={fullUser} />
+              </div>
+            </ProtectedRoutes>
           }
         />
       </Routes>

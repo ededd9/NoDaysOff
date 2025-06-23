@@ -35,59 +35,63 @@ export default function Navbar({
             <div className="flex space-x-8">
               <Link
                 to="/home"
-                className="text-gray-300 hover:text-white font-medium transition-colors duration-200"
+                className="text-white hover:text-white font-medium transition-colors duration-200"
               >
                 Home
               </Link>
               <Link
-                to="/Stats"
-                className="text-gray-300 hover:text-white font-medium transition-colors duration-200"
+                to="/Feed"
+                className="text-white visited:text-white-300 no-underline hover:text-white font-medium transition-colors duration-200"
               >
                 Feed
               </Link>
-
-              <button
-                variant="primary"
-                onClick={() => setShowForm(!showForm)}
-                className="mb-4"
-              >
-                Add Workout
-              </button>
+              <Link>
+                <button
+                  variant="primary"
+                  onClick={() => setShowForm(!showForm)}
+                  className="mb-4 text-white"
+                >
+                  Add Workout
+                </button>
+              </Link>
               <Link
                 to="/Progression"
-                className="text-gray-300 hover:text-white font-medium transition-colors duration-200"
+                className="text-white visited:text-gray-300 no-underline hover:text-white font-medium transition-colors duration-200"
               >
                 Progress
               </Link>
+
               <Link
-                to="/Profile"
-                className="text-gray-300 hover:text-white font-medium transition-colors duration-200"
+                to={`/Profile/${user?.id}`}
+                className="text-white visited:text-gray-300 no-underline hover:text-white font-medium transition-colors duration-200"
               >
                 Profile
               </Link>
-              <Link
+              {/* <Link
                 to="/WorkoutSplit"
-                className="text-gray-300 hover:text-white font-medium transition-colors duration-200"
+                className="text-white hover:text-white font-medium transition-colors duration-200"
               >
                 Workout Split
+              </Link> */}
+              <Link>
+                {user ? (
+                  <button
+                    className="text-white hover:text-white font-medium transition-colors duration-200"
+                    onClick={logout}
+                  >
+                    Log out
+                  </button>
+                ) : (
+                  <button
+                    className="text-white"
+                    onClick={() => {
+                      setShowAuthModal(true);
+                    }}
+                  >
+                    Sign Up
+                  </button>
+                )}
               </Link>
-              {user ? (
-                <button
-                  className="text-gray-300 hover:text-white font-medium transition-colors duration-200"
-                  onClick={logout}
-                >
-                  Log out
-                </button>
-              ) : (
-                <button
-                  className="text-white"
-                  onClick={() => {
-                    setShowAuthModal(true);
-                  }}
-                >
-                  Sign Up
-                </button>
-              )}
 
               {showAuthModal && (
                 <AuthModal

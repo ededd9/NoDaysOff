@@ -5,6 +5,7 @@ import authRoutes from "./routes/authRoutes.js";
 import User from "./models/User.js";
 import workoutRoutes from "./routes/workoutRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
+import postRoutes from "./routes/postRoutes.js";
 import dotenv from "dotenv";
 import cookieSession from "cookie-session";
 dotenv.config();
@@ -45,7 +46,7 @@ const PORT = process.env.PORT || 5050;
 
 //Routes
 app.use("/api/auth", authRoutes);
-
+app.use("/api/posts", postRoutes);
 app.use("/api/workouts", workoutRoutes);
 
 app.use("/api/users", userRoutes);

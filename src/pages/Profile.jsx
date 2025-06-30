@@ -5,16 +5,19 @@ import axios from "axios";
 export default function Profile() {
   const { user } = useAuth(); // currently logged in user
   const { userId } = useParams(); //user id from url
-  console.log(userId);
+
   console.log(user);
   const [editProfile, setEditProfile] = useState(false);
   const [userPosts, setUserPosts] = useState([]);
   const [profileUser, setProfileUser] = useState(null);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followList, setFollowList] = useState([]);
   //check if user is viewing their own profile
   const isOwnProfile = !userId || userId === user?.id;
-  //
+
   const displayUser = isOwnProfile ? user : profileUser;
   // console.log(user, editProfile);
+
   useEffect(() => {
     const fetchUserPosts = async () => {
       try {
@@ -30,6 +33,14 @@ export default function Profile() {
           );
           setProfileUser(response.data);
         }
+        const followResponse = await axios.get(
+          `http://localhost:5050/api/users/${userId}/is-following`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+            withCredentials: true,
+          }
+        );
+        setIsFollowing(followResponse.data.isFollowing);
         //setUserPosts(response.data);
         //console.log(userPosts);
         //grab the targetted user id posts , whether it be the own user or someone elses
@@ -43,6 +54,16 @@ export default function Profile() {
           }
         );
         setUserPosts(postResponse.data);
+
+        const followingResponse = await axios.get(
+          `http://localhost:5050/api/users/${targetUserId}/following`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+            withCredentials: true,
+          }
+        );
+
+        setFollowList(followingResponse.data);
       } catch (err) {
         console.log("Failed to load posts: ", err);
       }
@@ -52,7 +73,32 @@ export default function Profile() {
       fetchUserPosts();
     }
   }, [user, userId, isOwnProfile]);
-  console.log(userPosts);
+  //console.log(userPosts);
+  const handleFollow = async () => {
+    try {
+      console.log("try to follow user:", displayUser._id);
+      const token = localStorage.getItem("token");
+      console.log("Using token:", token); // Debug
+      const response = await axios.put(
+        `http://localhost:5050/api/users/${displayUser._id}/follow`,
+        {}, // empty data object
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          withCredentials: true,
+        }
+      );
+      if (response.data.status === "success") {
+        setIsFollowing(response.data.following);
+        console.log(`Successfully ${response.data.action} user`);
+      }
+    } catch (err) {
+      console.log("Error in following or unfollowing user:", err);
+    }
+  };
+  console.log("test", followList);
   return (
     <div className="pt-20 min-h-screen bg-gray-100">
       {/* Profile Section - Top of page under navbar */}
@@ -74,7 +120,7 @@ export default function Profile() {
                   className="w-full p-2 border rounded"
                 />
               </label>
-              <label className="block text-gray-700 text-sm font-bold mb-2">
+              {/* <label className="block text-gray-700 text-sm font-bold mb-2">
                 <input
                   placeholder="Gender"
                   name="gender"
@@ -94,17 +140,27 @@ export default function Profile() {
                   name="height"
                   className="w-full p-2 border rounded"
                 />
-              </label>
+              </label> */}
             </>
-          ) : (
+          ) : isOwnProfile ? (
             <>
               <h2 className="text-2xl font-semibold mb-2">
                 {displayUser?.name}
               </h2>
+
               <p className="text-gray-600 mb-1">Email | {displayUser?.email}</p>
-              <p className="text-gray-600 mb-1">Gender | </p>
-              <p className="text-gray-600 mb-1">Weight |</p>
-              <p className="text-gray-600 mb-1">Height |</p>
+            </>
+          ) : (
+            <>
+              <h2 className="text-2xl font-semibold mb-2">
+                Check out {displayUser?.name}'s posts!
+              </h2>
+              <button
+                onClick={() => handleFollow()}
+                className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded hover:bg-blue-200 transition"
+              >
+                {isFollowing ? "Unfollow" : "Follow"}
+              </button>
             </>
           )}
           {isOwnProfile && (
@@ -144,7 +200,6 @@ export default function Profile() {
                 className="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow"
               >
                 <div className="flex items-center mb-3">
-                  <div className="w-8 h-8 bg-gray-300 rounded-full mr-2"></div>
                   <div className="flex-1 min-w-0">
                     <h4 className="font-bold text-sm truncate">
                       {displayUser?.name}
@@ -158,7 +213,6 @@ export default function Profile() {
                   </div>
                 </div>
 
-                {/* Action buttons */}
                 {isOwnProfile && (
                   <div className="flex space-x-1 mb-3">
                     <button
@@ -179,6 +233,14 @@ export default function Profile() {
             ))}
           </div>
         )}
+      </div>
+      <div className="container mx-auto px-4 pb-8">
+        <h3 className="text-2xl font-bold mb-8 text-center">Following</h3>
+        <div className="bg-white p-6 rounded-lg shadow-md text-center max-w-md mx-auto">
+          {followList.map((user, i) => (
+            <ul>{user.name}</ul>
+          ))}
+        </div>
       </div>
     </div>
   );

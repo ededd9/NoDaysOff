@@ -23,6 +23,7 @@ export default function Feed() {
     const fetchFeed = async () => {
       try {
         const token = localStorage.getItem("token");
+        console.log("using token,", token);
         const response = await axios.get(
           `http://localhost:5050/api/posts/feed`,
           {
@@ -30,15 +31,27 @@ export default function Feed() {
             withCredentials: true,
           }
         );
+
         if (response.data.status === "success") {
-          setPosts(response.data.data);
+          if (filters.popular) {
+            let popularPosts = response.data.data;
+            let sortedP = response.data.data.sort(
+              (a, b) => b.likes.length - a.likes.length
+            );
+            console.log("popular posts", popularPosts);
+            console.log("sorted", sortedP);
+            setPosts(sortedP);
+          } else {
+            setPosts(response.data.data);
+          }
         }
       } catch (err) {
         console.log("Failed to load feed", err);
       }
     };
     fetchFeed();
-  }, []);
+    console.log("Refreshed feed since filters have been applied");
+  }, [filters]);
   const handleSubmit = async (e) => {
     if (postContent === "") {
       alert("Can't post nothing !");
@@ -66,6 +79,7 @@ export default function Feed() {
   };
 
   const handleDelete = async (id) => {
+    const token = localStorage.getItem("token");
     try {
       await axios.delete(`http://localhost:5050/api/posts/${id}`, {
         method: "DELETE",
@@ -82,6 +96,7 @@ export default function Feed() {
   //console.log("current post added: ", postContent);
   //handle liking/unliking a post
   const handleLike = async (id) => {
+    const token = localStorage.getItem("token");
     try {
       //url, data, config
       const response = await axios.put(
@@ -108,6 +123,7 @@ export default function Feed() {
       console.log("Error in liking post: ", err);
     }
   };
+
   return (
     <div className="pt-20 min-h-screen bg-gray-100">
       {/* Main Grid Container */}
@@ -148,7 +164,17 @@ export default function Feed() {
                 Recent Posts
               </label>
               <label className="flex items-center">
-                <input type="checkbox" className="mr-2" />
+                <input
+                  type="checkbox"
+                  className="mr-2"
+                  checked={filters.popular}
+                  onChange={(e) =>
+                    setFilters((prev) => ({
+                      ...prev,
+                      popular: e.target.checked,
+                    }))
+                  }
+                />
                 Popular
               </label>
               <label className="flex items-center">

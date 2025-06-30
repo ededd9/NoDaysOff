@@ -7,6 +7,10 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true, lowercase: true },
   password: { type: String, required: true, minlength: 6, select: false },
   workoutLog: [{ type: mongoose.Schema.Types.ObjectId, ref: "Workout" }],
+  postLog: [{ type: mongoose.Schema.Types.ObjectId, ref: "Post", default: [] }],
+  following: [
+    { type: mongoose.Schema.Types.ObjectId, ref: "User", default: [] },
+  ],
 });
 
 userSchema.pre("save", async function (next) {

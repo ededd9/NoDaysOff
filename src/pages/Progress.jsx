@@ -3,48 +3,53 @@ import { ResponsiveLine } from "@nivo/line";
 export default function Progress({ fullUser }) {
   const [filteredDateStart, setFilteredDateStart] = useState("");
   const [filteredDateEnd, setFilteredDateEnd] = useState("");
-  const [filterDate, setFilterDate] = useState(false);
+  const [filter, setFilter] = useState(false);
+  const [appliedWorkoutNames, setAppliedWorkoutNames] = useState([]);
+  const [appliedDateStart, setAppliedDateStart] = useState("");
+  const [appliedDateEnd, setAppliedDateEnd] = useState("");
+  let maxmaxWeight = 500;
   console.log(fullUser);
   const workouts = fullUser.map((workout) => workout.exercises);
   console.log("WORKOUTS", workouts);
   let workoutNames = [];
+  const [selectedWorkoutNames, setSelectedWorkoutNames] = useState([]);
+  fullUser.forEach((log) => {
+    log.exercises.forEach((ex) => {
+      workoutNames.push(ex.name);
+    });
+  });
+  const handleSelectedWorkouts = (exercise) => {
+    setSelectedWorkoutNames((prev) =>
+      prev.includes(exercise)
+        ? prev.filter((name) => name !== exercise)
+        : [...prev, exercise]
+    );
+  };
   const data = new Map();
+  //logic in creating a map data object
   fullUser.forEach((log) => {
     const logDate = new Date(log.date).toISOString().split("T")[0];
-    if (filterDate) {
-      if (filteredDateStart <= logDate && logDate <= filteredDateEnd) {
-        log.exercises.forEach((ex) => {
-          const key = ex.name;
-          workoutNames.push(key);
-          console.log("name: ", key);
-          const weight = ex.sets.map((set) => set.weight);
-          console.log(weight);
-          const maxWeight = Math.max(...weight);
+    const isDataInRange =
+      !filter ||
+      ((!appliedDateStart || appliedDateStart <= logDate) &&
+        (!appliedDateEnd || logDate <= appliedDateEnd));
+    log.exercises.forEach((ex) => {
+      const key = ex.name;
 
-          console.log("weight", weight);
-          if (!data.has(key)) {
-            data.set(key, []);
-          }
-          data.get(key).push({ x: logDate, y: maxWeight });
-        });
-      }
-    } else {
-      console.log(logDate);
-      log.exercises.forEach((ex) => {
-        const key = ex.name;
-        workoutNames.push(key);
-        console.log("name: ", key);
-        const weight = ex.sets.map((set) => set.weight);
-        console.log(weight);
-        const maxWeight = Math.max(...weight);
+      const isSelectedWorkout =
+        appliedWorkoutNames.length === 0 || appliedWorkoutNames.includes(key);
+      if (isDataInRange && isSelectedWorkout) {
+        const weights = ex.sets.map((set) => set.weight);
+        console.log("weights:", weights);
+        const maxWeight = Math.max(...weights);
 
-        console.log("weight", weight);
         if (!data.has(key)) {
           data.set(key, []);
         }
+
         data.get(key).push({ x: logDate, y: maxWeight });
-      });
-    }
+      }
+    });
   });
   //only get unique exercise names
   const workoutNameSet = new Set(workoutNames);
@@ -65,10 +70,15 @@ export default function Progress({ fullUser }) {
 
   console.log(filteredDateEnd, filteredDateStart);
   console.log("NAMES", workoutNames);
+  console.log("selected", selectedWorkoutNames);
+
   return (
     <>
       <div className=" bg-gray-100 px-4 pt-[80px] flex items-center justify-center">
-        <div className="bg-white p-6 rounded-lg shadow-xl w-[95%] h-[400px] max-w-2xl">
+        <div
+          className="p-6 rounded-lg shadow-xl w-[95%] h-[400px] max-w-2xl"
+          style={{ backgroundColor: "#778da9" }}
+        >
           <div>
             <h1>Filters</h1>
             <h3>Date Selection</h3>
@@ -92,30 +102,53 @@ export default function Progress({ fullUser }) {
             ></input>
 
             <button
-              onClick={() =>
-                filterDate ? setFilterDate(false) : setFilterDate(true)
-              }
+              onClick={() => {
+                if (filter) {
+                  setSelectedWorkoutNames([]);
+                  setFilteredDateStart("");
+                  setFilteredDateEnd("");
+                  setAppliedWorkoutNames([]);
+                  setAppliedDateStart("");
+                  setAppliedDateEnd("");
+                } else {
+                  setAppliedWorkoutNames(selectedWorkoutNames);
+                  setAppliedDateStart(filteredDateStart);
+                  setAppliedDateEnd(filteredDateEnd);
+                }
+                setFilter(!filter);
+              }}
               className={`
     mt-2 px-2 py-1 text-xs font-medium rounded-md transition-colors shadow-sm
     ${
-      filterDate
+      filter
         ? "bg-cyan-200 hover:bg-green-300 text-white-900"
         : "bg-blue-100 hover:bg-blue-200 text-white-800"
     }
   `}
             >
-              {filterDate ? "Filtered" : "Unfiltered"}
+              {filter ? "Filtered" : "Unfiltered"}
             </button>
           </div>
           <h3>Workout Selection</h3>
-          {workoutNames.map((exercise) => {
-            return (
-              <p>
-                {exercise}
-                <input type="checkbox" />
-              </p>
-            );
-          })}
+          <div
+            className="overflow-y-auto h-[150px] w-[400px] rounded-md"
+            style={{ backgroundColor: "#e0e1dd" }}
+          >
+            {workoutNames.map((exercise) => {
+              return (
+                <label className="block px-2 py-1">
+                  <p>
+                    {exercise}
+                    <input
+                      type="checkbox"
+                      checked={selectedWorkoutNames.includes(exercise)}
+                      onChange={() => handleSelectedWorkouts(exercise)}
+                    />
+                  </p>
+                </label>
+              );
+            })}
+          </div>
         </div>
       </div>
 
@@ -127,7 +160,7 @@ export default function Progress({ fullUser }) {
             yScale={{
               type: "linear",
               min: "0",
-              max: "500",
+              max: maxmaxWeight,
               stacked: false,
               reverse: false,
             }}

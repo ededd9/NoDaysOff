@@ -21,7 +21,7 @@ export default function SignUpForm({ onClose, onSwitchToLogin }) {
 
       if (!response.ok) throw new Error(data.message || "Signup failed");
 
-      console.log("Signed up", data);
+      console.log("Signed up");
       onClose();
     } catch (error) {
       console.error("Signup error", error);

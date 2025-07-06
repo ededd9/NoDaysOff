@@ -25,7 +25,7 @@ router.get("/:id", async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 });
-
+// toggle follow status
 router.put("/:id/follow", protect, async (req, res) => {
   try {
     const targetUserId = req.params.id;
@@ -68,6 +68,7 @@ router.put("/:id/follow", protect, async (req, res) => {
     });
   }
 });
+// get users following list
 router.get("/:id/is-following", protect, async (req, res) => {
   try {
     const isFollowing = await User.exists({
@@ -79,7 +80,7 @@ router.get("/:id/is-following", protect, async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 });
-
+//check follow status
 router.get("/:id/following", protect, async (req, res) => {
   try {
     const user = await User.findById(req.params.id)
@@ -91,6 +92,26 @@ router.get("/:id/following", protect, async (req, res) => {
     res.json(user.following);
   } catch (err) {
     res.status(500).json({ message: err.message });
+  }
+});
+//update user profiel
+router.patch("/:id", protect, async (req, res) => {
+  try {
+    const updates = Object.keys(req.body);
+    const updatesAllowed = ["name", "email", "bio"];
+    const isValidUpdate = updates.every((update) =>
+      updatesAllowed.includes(update)
+    );
+    if (!isValidUpdate)
+      return res.status(400).json({ message: "Invalid updates!" });
+
+    const user = await User.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true,
+    });
+    res.json(user);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
   }
 });
 export default router;

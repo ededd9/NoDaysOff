@@ -16,6 +16,7 @@ export default function Navbar({
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authFormType, setAuthFormType] = useState("signup");
   const { user, logout } = useAuth();
+  //console.log("YOO", user);
   return (
     <>
       {showForm && (
@@ -35,17 +36,19 @@ export default function Navbar({
             <div className="flex space-x-8">
               <Link
                 to="/home"
+                style={{ textDecoration: "none" }}
                 className="text-white hover:text-white font-medium transition-colors duration-200"
               >
                 Home
               </Link>
               <Link
                 to="/Feed"
+                style={{ textDecoration: "none" }}
                 className="text-white visited:text-white-300 no-underline hover:text-white font-medium transition-colors duration-200"
               >
                 Feed
               </Link>
-              <Link>
+              <Link style={{ textDecoration: "none" }}>
                 <button
                   variant="primary"
                   onClick={() => setShowForm(!showForm)}
@@ -56,13 +59,15 @@ export default function Navbar({
               </Link>
               <Link
                 to="/Progression"
+                style={{ textDecoration: "none" }}
                 className="text-white visited:text-gray-300 no-underline hover:text-white font-medium transition-colors duration-200"
               >
                 Progress
               </Link>
 
               <Link
-                to={`/Profile/${user?.id}`}
+                to={`/Profile/${user?._id}`}
+                style={{ textDecoration: "none" }}
                 className="text-white visited:text-gray-300 no-underline hover:text-white font-medium transition-colors duration-200"
               >
                 Profile
@@ -73,7 +78,7 @@ export default function Navbar({
               >
                 Workout Split
               </Link> */}
-              <Link>
+              <Link style={{ textDecoration: "none" }}>
                 {user ? (
                   <button
                     className="text-white hover:text-white font-medium transition-colors duration-200"

@@ -6,7 +6,7 @@ import User from "../models/User.js";
 export const addWorkoutLog = async (req, res) => {
   try {
     const { date, name, sets, reps, weight } = req.body;
-    const userId = req.user._id;
+    const userId = req.user.id;
 
     // Validate input
     if (!date || !name || !sets || !reps || !weight) {
@@ -32,7 +32,7 @@ export const addWorkoutLog = async (req, res) => {
     // Only update user ref if new workout
     if (workout.$isNew) {
       await User.findByIdAndUpdate(userId, {
-        $addToSet: { workoutLog: workout._id },
+        $addToSet: { workoutLog: workout.id },
       });
     }
 

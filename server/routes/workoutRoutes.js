@@ -10,7 +10,7 @@ router.post("/", addWorkoutLog);
 // Get all workouts for the logged-in user
 router.get("/", async (req, res) => {
   try {
-    const workouts = await Workout.find({ user: req.user._id }).sort({
+    const workouts = await Workout.find({ user: req.user.id }).sort({
       date: -1,
     });
     res.status(200).json({
@@ -30,7 +30,7 @@ router.get("/:id", async (req, res) => {
   try {
     const workout = await Workout.findOne({
       _id: req.params.id,
-      user: req.user._id, // Ensure user owns this workout
+      user: req.user.id, // Ensure user owns this workout
     });
 
     if (!workout) return res.status(404).json({ message: "Workout not found" });
@@ -44,7 +44,7 @@ router.put("/:id", async (req, res) => {
   try {
     const workout = await Workout.findOne({
       _id: req.params.id,
-      user: req.user._id,
+      user: req.user.id,
     });
     if (workout) {
       try {
@@ -70,7 +70,7 @@ router.delete("/:workoutId/exercises/:exerciseIndex", async (req, res) => {
     const { workoutId, exerciseIndex } = req.params;
     const workout = await Workout.findOne({
       _id: workoutId,
-      user: req.user._id,
+      user: req.user.id,
     });
     console.log(workoutId);
     console.log(workout);

@@ -2,8 +2,10 @@ import React, { useEffect, useState } from "react";
 import WorkoutForm from "./WorkoutForm";
 import { useAuth } from "../context/authContext";
 import axios from "axios";
+
 import {
   isToday,
+  parseISO,
   format,
   eachDayOfInterval,
   endOfMonth,
@@ -23,9 +25,24 @@ export default function CalendarView({ workout, fullUser, fetchUser }) {
   const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
   const currentDate = new Date();
   const currentDayIndex = currentDate.getDay();
-  const [selectedWorkouts, setSelectedWorkouts] = useState([]);
+  const [selectedDate, setSelectedDate] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
+  const { user } = useAuth();
+  //console.log("USER", user._id);
+  useEffect(() => {
+    if (!user) {
+      setSelectedDate(null);
+      setIsModalOpen(false);
+      setIsEditing(false);
+    }
+  }, [user]);
+  //compute selected workouts b ased on selectedDate so find all workouts on the date of
+  //ex 2025-05-05, if none found empty []
+  const selectedWorkouts = selectedDate
+    ? fullUser.filter((item) => item.date?.split("T")[0] === selectedDate)
+    : [];
+  // console.log("SELECTED DATE:", selectedDate);
+  // console.log("SELECTED WORKOUTS:", selectedWorkouts);
   return (
     <>
       <div>CalendarView</div>
@@ -73,11 +90,11 @@ export default function CalendarView({ workout, fullUser, fetchUser }) {
                 const workoutsForDate = fullUser.filter(
                   (item) => date === item.date?.split("T")[0]
                 );
-                setSelectedWorkouts(workoutsForDate);
-                console.log(
-                  `Inside Calendar View: Workouts for ${date}:`,
-                  workoutsForDate
-                );
+                setSelectedDate(date);
+                // console.log(
+                //   `Inside Calendar View: Workouts for ${date}:`,
+                //   workoutsForDate
+                // );
                 setIsModalOpen(true);
               }}
             >

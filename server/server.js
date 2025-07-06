@@ -1,3 +1,5 @@
+import dotenv from "dotenv";
+dotenv.config();
 import express from "express";
 import cors from "cors";
 import connectDB from "./db/connection.js";
@@ -6,9 +8,7 @@ import User from "./models/User.js";
 import workoutRoutes from "./routes/workoutRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import postRoutes from "./routes/postRoutes.js";
-import dotenv from "dotenv";
 import cookieSession from "cookie-session";
-dotenv.config();
 const app = express();
 
 connectDB();

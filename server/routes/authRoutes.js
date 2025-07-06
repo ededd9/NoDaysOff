@@ -13,7 +13,7 @@ router.post("/signup", async (req, res) => {
       status: "success",
       data: {
         user: {
-          id: user._id,
+          id: user.id,
           name: user.name,
           email: user.email,
         },
@@ -30,12 +30,8 @@ router.post("/signup", async (req, res) => {
 //LOGIN
 router.post("/login", async (req, res) => {
   try {
-    console.log("Session object:", req.session);
-    console.log("Request body:", req.body);
     const { email, password } = req.body;
-
-    const user = await User.findOne({ email: email }).select("+password");
-    console.log("Found user:", user);
+    const user = await User.findOne({ email }).select("+password");
 
     if (!user) {
       return res
@@ -44,8 +40,6 @@ router.post("/login", async (req, res) => {
     }
 
     const isPasswordValid = await user.comparePassword(password);
-    console.log("Password valid:", isPasswordValid);
-
     if (!isPasswordValid) {
       return res.status(401).json({ status: "fail", message: "Invalid creds" });
     }
@@ -58,14 +52,17 @@ router.post("/login", async (req, res) => {
     });
 
     req.session.refreshToken = refreshToken;
+
+    const { password: pw, ...userData } = user.toObject();
+    console.log("Sending user data:", userData); // <- this must include _id
+
     res.status(200).json({
       status: "success",
       accessToken,
-      data: { user: { id: user._id, name: user.name, email: user.email } },
+      data: { user: userData }, // <- this must include _id
     });
   } catch (err) {
-    console.error("Login error:", err);
-    res.status(400).json({ status: "fail", message: err.message });
+    res.status(400).json({ error: "Invalid creds" });
   }
 });
 
@@ -80,7 +77,7 @@ router.post("/refresh", (req, res) => {
         .status(403)
         .json({ message: "Invalid or expired refresh token" });
 
-    const newAccessToken = jwt.sign({ id: user.id }, ACCESS_SECRET, {
+    const newAccessToken = jwt.sign({ id: user._id }, ACCESS_SECRET, {
       expiresIn: "1h",
     });
 

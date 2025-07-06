@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
+import { useAuth } from "../context/authContext";
 import axios from "axios";
 export default function WorkoutForm({ onSubmit, onClose }) {
+  const { user } = useAuth();
   const date = new Date();
   const month = date.getMonth() + 1;
   const [day, setDay] = useState("");
@@ -45,16 +47,18 @@ export default function WorkoutForm({ onSubmit, onClose }) {
       setShowDropDown(false);
       return;
     }
-    console.log(exerciseNamesList);
+    //console.log(exerciseNamesList);
     //filter the results as the field changes
     const filtered = exerciseNamesList.filter((exercise) =>
       exercise.toLowerCase().includes(exercises.name.toLowerCase())
     );
     setFilteredExerciseNames(filtered.slice(0, 10));
     setShowDropDown(filtered.length > 0);
-    console.log(filteredExerciseNames);
+    //console.log(filteredExerciseNames);
   }, [exercises.name, exerciseNamesList]);
-
+  if (!user) {
+    return null;
+  }
   //handle exercise selection from dropdown
   const handleExerciseSelect = (exerciseName) => {
     setExercises((prev) => ({ ...prev, name: exerciseName }));
@@ -115,10 +119,14 @@ export default function WorkoutForm({ onSubmit, onClose }) {
       <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
         <form onSubmit={handleSubmit}>
           <div className="mb-4 relative">
-            <label className="block text-gray-700 text-sm font-bold mb-2">
+            <label
+              htmlFor="name"
+              className="block text-gray-700 text-sm font-bold mb-2"
+            >
               Exercise Name
             </label>
             <input
+              id="name"
               required
               name="name"
               className="w-full px-3 py-2 border border-gray-300 rounded-md"
@@ -130,7 +138,7 @@ export default function WorkoutForm({ onSubmit, onClose }) {
               onFocus={handleExerciseInputFocus}
               onBlur={handleExerciseInputBlur}
               disabled={loadingExercises}
-              autocomplete="off"
+              autoComplete="off"
             />
             {showDropDown && (
               <div className="absolute z-20 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-40 overflow-y-auto">
@@ -149,10 +157,14 @@ export default function WorkoutForm({ onSubmit, onClose }) {
 
           {/* Weight */}
           <div className="mb-4">
-            <label className="block text-gray-700 text-sm font-bold mb-2">
+            <label
+              htmlFor="weight"
+              className="block text-gray-700 text-sm font-bold mb-2"
+            >
               Weight (lbs/kg)
             </label>
             <input
+              id="weight"
               required
               type="number"
               name="weight"
@@ -167,10 +179,14 @@ export default function WorkoutForm({ onSubmit, onClose }) {
           <div className="grid grid-cols-2 gap-4 mb-6">
             {/* Sets Dropdown */}
             <div>
-              <label className="block text-gray-700 text-sm font-bold mb-2">
+              <label
+                htmlFor="sets"
+                className="block text-gray-700 text-sm font-bold mb-2"
+              >
                 Sets
               </label>
               <select
+                id="sets"
                 required
                 name="sets"
                 className="w-full px-4 py-2 border border-gray-300 rounded-md"
@@ -187,10 +203,14 @@ export default function WorkoutForm({ onSubmit, onClose }) {
 
             {/* Reps Dropdown */}
             <div>
-              <label className="block text-gray-700 text-sm font-bold mb-2">
+              <label
+                htmlFor="reps"
+                className="block text-gray-700 text-sm font-bold mb-2"
+              >
                 Reps
               </label>
               <select
+                id="reps"
                 required
                 name="reps"
                 className="w-full px-4 py-2 border border-gray-300 rounded-md"

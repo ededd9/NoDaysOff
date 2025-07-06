@@ -11,6 +11,7 @@ const userSchema = new mongoose.Schema({
   following: [
     { type: mongoose.Schema.Types.ObjectId, ref: "User", default: [] },
   ],
+  bio: { type: String, default: "" },
 });
 
 userSchema.pre("save", async function (next) {

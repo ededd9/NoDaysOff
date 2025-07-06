@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import Navbar from "./components/Navbar";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Dashboard from "./pages/Dashboard";
 import WorkoutSplit from "./pages/WorkoutSplit";
 import Feed from "./pages/Feed";
@@ -24,6 +24,7 @@ function App() {
   const [split, setSplit] = useState("");
   const { user } = useAuth();
   const [fullUser, setFullUser] = useState([]);
+
   const fetchUser = async () => {
     const token = localStorage.getItem("token");
     //try to load user workouts
@@ -75,6 +76,8 @@ function App() {
           }
         } catch (err) {
           console.error("Refresh failed:", err);
+          localStorage.removeItem("token");
+          window.location.href = "/login";
           setFullUser([]);
           setWorkout([]);
           setExercises({
@@ -105,7 +108,7 @@ function App() {
         sets: 0,
         date: "",
       });
-    } else if (user && user.id && token) {
+    } else if (user && user._id && token) {
       // User is logged in and has token
       fetchUser();
     } else if (!token) {
@@ -130,6 +133,14 @@ function App() {
         fetchUser={fetchUser}
       />
       <Routes>
+        <Route
+          path="/"
+          element={
+            <ProtectedRoutes>
+              <Dashboard fullUser={fullUser} fetchUser={fetchUser} />{" "}
+            </ProtectedRoutes>
+          }
+        ></Route>
         <Route
           path="/home"
           element={

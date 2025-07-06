@@ -4,9 +4,8 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../context/authContext";
 import EditForm from "./EditForm";
 export default function WorkoutModal({ workouts, onClose, fetchUser }) {
-  console.log("Sending token:", `Bearer ${localStorage.getItem("token")}`);
-  console.log("Props:", { workouts, onClose, fetchUser });
-  console.log("workouts for this day:", workouts);
+  // console.log("Props:", { workouts, onClose, fetchUser });
+  // console.log("workouts for this day:", workouts);
   const token = localStorage.getItem("token");
   const user = useAuth();
   const [id, setId] = useState("");
@@ -16,6 +15,7 @@ export default function WorkoutModal({ workouts, onClose, fetchUser }) {
     setExerciseToEdit(exercise);
     setId(id);
     setShowEditForm(true);
+    console.log("OWRKOUT ID", id);
   };
   const handleDeleteExercise = async (workoutId, exerciseIndex) => {
     let token = localStorage.getItem("token");
@@ -71,6 +71,7 @@ export default function WorkoutModal({ workouts, onClose, fetchUser }) {
         exercise={exerciseToEdit}
         id={id}
         onClose={() => setShowEditForm(false)}
+        fetchUser={fetchUser}
       />
     );
   }
@@ -86,7 +87,6 @@ export default function WorkoutModal({ workouts, onClose, fetchUser }) {
             {workouts.map((workout, workoutIndex) => (
               <div key={workoutIndex} className="mb-4 border-b pb-2">
                 {workout.exercises.map((exercise, exerciseIndex) => {
-                  console.log(`Inside WorkoutModal: exercise:`, exercise);
                   return (
                     <div key={exerciseIndex}>
                       <h3 className="font-semibold flex justify-between items-center">
@@ -135,7 +135,6 @@ export default function WorkoutModal({ workouts, onClose, fetchUser }) {
               onClick={onClose}
               className="mt-2 px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
             >
-              {console.log("Inside WorkoutModal: No workouts yet")}
               Close
             </button>
           </div>

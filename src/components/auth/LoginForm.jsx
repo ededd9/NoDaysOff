@@ -31,8 +31,8 @@ export default function LoginForm({ onClose }) {
       );
       localStorage.setItem("token", response.data.accessToken);
       localStorage.setItem("user", JSON.stringify(response.data.data.user));
-      console.log("Login successful", response.data);
-      login(response.data.data.user);
+      // console.log("Login successful", response.data);
+      login(response.data.data.user, response.data.accessToken);
       //fetch user works
       const token = response.data.accessToken;
       await axios.get("http://localhost:5050/api/workouts", {

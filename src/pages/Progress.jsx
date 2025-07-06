@@ -8,9 +8,9 @@ export default function Progress({ fullUser }) {
   const [appliedDateStart, setAppliedDateStart] = useState("");
   const [appliedDateEnd, setAppliedDateEnd] = useState("");
   let maxmaxWeight = 500;
-  console.log(fullUser);
+  //console.log(fullUser);
   const workouts = fullUser.map((workout) => workout.exercises);
-  console.log("WORKOUTS", workouts);
+  //console.log("WORKOUTS", workouts);
   let workoutNames = [];
   const [selectedWorkoutNames, setSelectedWorkoutNames] = useState([]);
   fullUser.forEach((log) => {
@@ -40,7 +40,7 @@ export default function Progress({ fullUser }) {
         appliedWorkoutNames.length === 0 || appliedWorkoutNames.includes(key);
       if (isDataInRange && isSelectedWorkout) {
         const weights = ex.sets.map((set) => set.weight);
-        console.log("weights:", weights);
+        //console.log("weights:", weights);
         const maxWeight = Math.max(...weights);
 
         if (!data.has(key)) {
@@ -55,22 +55,22 @@ export default function Progress({ fullUser }) {
   const workoutNameSet = new Set(workoutNames);
   //change it back to an array
   workoutNames = [...workoutNameSet];
-  console.log(
-    "data being manipulated into libraries perferred structure ",
-    data
-  );
+  // console.log(
+  //   "data being manipulated into libraries perferred structure ",
+  //   data
+  // );
   const finalData = Array.from(data, ([name, points]) => ({
     id: name,
     data: points,
   }));
-  console.log(
-    "final form of data after being manipulated into libraries perferred structure ",
-    finalData
-  );
+  // console.log(
+  //   "final form of data after being manipulated into libraries perferred structure ",
+  //   finalData
+  // );
 
-  console.log(filteredDateEnd, filteredDateStart);
-  console.log("NAMES", workoutNames);
-  console.log("selected", selectedWorkoutNames);
+  // console.log(filteredDateEnd, filteredDateStart);
+  // console.log("NAMES", workoutNames);
+  // console.log("selected", selectedWorkoutNames);
 
   return (
     <>
@@ -84,7 +84,7 @@ export default function Progress({ fullUser }) {
             <h3>Date Selection</h3>
             <label>Start Date:</label>
             <input
-              placeHolder="Start"
+              placeholder="Start"
               type="date"
               name="dateTo"
               value={filteredDateStart}
@@ -93,7 +93,7 @@ export default function Progress({ fullUser }) {
             ></input>
             <label>End Date:</label>
             <input
-              placeHolder="End"
+              placeholder="End"
               type="date"
               name="dateFrom"
               value={filteredDateEnd}
@@ -134,9 +134,9 @@ export default function Progress({ fullUser }) {
             className="overflow-y-auto h-[150px] w-[400px] rounded-md"
             style={{ backgroundColor: "#e0e1dd" }}
           >
-            {workoutNames.map((exercise) => {
+            {workoutNames.map((exercise, i) => {
               return (
-                <label className="block px-2 py-1">
+                <label className="block px-2 py-1" key={i}>
                   <p>
                     {exercise}
                     <input

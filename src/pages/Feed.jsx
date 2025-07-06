@@ -8,14 +8,15 @@ export default function Feed() {
   const [posts, setPosts] = useState([]);
   const [postContent, setPostContent] = useState("");
   const [creatingPost, setCreatingPost] = useState(false);
+  const [editingPostId, setEditingPostId] = useState(null);
+  const [editedContent, setEditedContent] = useState("");
   const [filters, setFilters] = useState({
-    recent: false,
     popular: false,
     following: false,
   });
   //context
   const { user } = useAuth();
-
+  const token = localStorage.getItem("token");
   const toggleModal = () => {
     setCreatingPost(!creatingPost);
   };
@@ -23,34 +24,52 @@ export default function Feed() {
     const fetchFeed = async () => {
       try {
         const token = localStorage.getItem("token");
-        console.log("using token,", token);
-        const response = await axios.get(
+        // const response = await axios.get(
+        //   `http://localhost:5050/api/posts/feed`,
+        //   {
+        //     headers: { Authorization: `Bearer ${token}` },
+        //     withCredentials: true,
+        //   }
+        // );
+        //condesed it by destructuring {data}, don't have to use 'response.data.data'
+        const { data } = await axios.get(
           `http://localhost:5050/api/posts/feed`,
           {
             headers: { Authorization: `Bearer ${token}` },
             withCredentials: true,
           }
         );
+        //error in retrieving data, return
+        if (data.status !== "success") return;
+        let processedPosts = [...data.data];
 
-        if (response.data.status === "success") {
-          if (filters.popular) {
-            let popularPosts = response.data.data;
-            let sortedP = response.data.data.sort(
-              (a, b) => b.likes.length - a.likes.length
-            );
-            console.log("popular posts", popularPosts);
-            console.log("sorted", sortedP);
-            setPosts(sortedP);
-          } else {
-            setPosts(response.data.data);
-          }
+        if (filters.popular) {
+          processedPosts = processedPosts.sort(
+            (a, b) => b.likes.length - a.likes.length
+          );
         }
+        if (filters.following) {
+          const followedUsersResponse = await axios.get(
+            `http://localhost:5050/api/users/${user._id}/following`,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+              withCredentials: true,
+            }
+          );
+          let followedUsers = followedUsersResponse.data.map(
+            (user) => user._id
+          );
+          processedPosts = processedPosts.filter((post) =>
+            followedUsers.includes(post.user._id)
+          );
+        }
+        //set the selected filters
+        setPosts(processedPosts);
       } catch (err) {
         console.log("Failed to load feed", err);
       }
     };
     fetchFeed();
-    console.log("Refreshed feed since filters have been applied");
   }, [filters]);
   const handleSubmit = async (e) => {
     if (postContent === "") {
@@ -79,20 +98,20 @@ export default function Feed() {
   };
 
   const handleDelete = async (id) => {
-    const token = localStorage.getItem("token");
+    const prevPosts = [...posts];
     try {
+      setPosts((prevPosts) => prevPosts.filter((post) => post._id !== id));
       await axios.delete(`http://localhost:5050/api/posts/${id}`, {
-        method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
         withCredentials: "true",
       });
-      setPosts((prevPosts) => prevPosts.filter((post) => post._id !== id));
       console.log("Deleted successfully.");
     } catch (err) {
+      setPosts(prevPosts);
       console.log(err);
     }
   };
-  console.log("Posts:", posts);
+  // console.log("Posts:", posts);
   //console.log("current post added: ", postContent);
   //handle liking/unliking a post
   const handleLike = async (id) => {
@@ -123,7 +142,30 @@ export default function Feed() {
       console.log("Error in liking post: ", err);
     }
   };
+  const handleEdit = (post) => {
+    setEditingPostId(post._id);
+    setEditedContent(post.content);
+  };
 
+  const handleSaveEdit = async (postId) => {
+    try {
+      const response = await axios.patch(
+        `http://localhost:5050/api/posts/${postId}`,
+        { content: editedContent },
+        { headers: { Authorization: `Bearer ${token}` }, withCredentials: true }
+      );
+
+      setPosts((prevPosts) =>
+        prevPosts.map((post) =>
+          post._id === postId ? { ...post, content: editedContent } : post
+        )
+      );
+      setEditingPostId(null);
+      setEditedContent("");
+    } catch (err) {
+      console.log("Error updating post: ", err);
+    }
+  };
   return (
     <div className="pt-20 min-h-screen bg-gray-100">
       {/* Main Grid Container */}
@@ -160,10 +202,6 @@ export default function Feed() {
             <h2 className="text-xl font-bold mb-4">Filters</h2>
             <div className="space-y-3">
               <label className="flex items-center">
-                <input type="checkbox" className="mr-2" />
-                Recent Posts
-              </label>
-              <label className="flex items-center">
                 <input
                   type="checkbox"
                   className="mr-2"
@@ -178,7 +216,17 @@ export default function Feed() {
                 Popular
               </label>
               <label className="flex items-center">
-                <input type="checkbox" className="mr-2" />
+                <input
+                  type="checkbox"
+                  className="mr-2"
+                  checked={filters.following}
+                  onChange={(e) =>
+                    setFilters((prev) => ({
+                      ...prev,
+                      following: e.target.checked,
+                    }))
+                  }
+                />
                 Following
               </label>
             </div>
@@ -212,7 +260,7 @@ export default function Feed() {
                   {post.likes.length}
                 </button>
               </div>
-              {user && user.id === post.user._id && (
+              {user && user._id === post.user._id && (
                 <div className="flex space-x-2">
                   <button
                     onClick={() => handleDelete(post._id)}
@@ -220,13 +268,46 @@ export default function Feed() {
                   >
                     Delete
                   </button>
-                  <button className="text-xs bg-blue-100 text-blue-600 px-1 py-1 rounded hover:bg-blue-200 transition">
-                    Edit
-                  </button>
+
+                  {editingPostId === post._id ? (
+                    <>
+                      <button
+                        onClick={() => handleSaveEdit(post._id)}
+                        className="text-xs bg-green-100 text-green-600 px-1 py-1 rounded hover:bg-green-200 transition"
+                      >
+                        Save
+                      </button>
+                      <button
+                        onClick={() => {
+                          setEditingPostId(null);
+                          setEditedContent("");
+                        }}
+                        className="text-xs bg-gray-100 text-gray-600 px-1 py-1 rounded hover:bg-gray-200 transition"
+                      >
+                        Cancel
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      onClick={() => handleEdit(post)}
+                      className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded hover:bg-blue-200 transition"
+                    >
+                      Edit
+                    </button>
+                  )}
                 </div>
               )}
 
-              <p>{post.content}</p>
+              {editingPostId === post._id ? (
+                <textarea
+                  value={editedContent}
+                  onChange={(e) => setEditedContent(e.target.value)}
+                />
+              ) : (
+                <p className="text-gray-800 text-sm line-clamp-4">
+                  {post.content}
+                </p>
+              )}
             </div>
           ))}
         </div>

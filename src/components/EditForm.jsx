@@ -1,8 +1,8 @@
 import React from "react";
 import { useState } from "react";
 import axios from "axios";
-export default function EditForm({ exercise, id, onClose }) {
-  console.log("passed through exercise: ", exercise, "workout id:", id);
+export default function EditForm({ exercise, id, onClose, fetchUser }) {
+  //console.log("passed through exercise: ", exercise, "workout id:", id);
   const [newExercise, setNewExercise] = useState({
     name: exercise.name,
     sets: exercise.sets.map((set) => ({
@@ -11,15 +11,15 @@ export default function EditForm({ exercise, id, onClose }) {
       weight: set.weight,
     })),
   });
-  console.log(exercise.sets.length);
-  console.log("new exercise:", newExercise);
+  // console.log(exercise.sets.length);
+  // console.log("new exercise:", newExercise);
   const handleChange = (e) => {
     //seperate the target into name of element and its value
     const { name, value, dataset } = e.target;
     const index = parseInt(dataset.index);
     //update current exercise with its new value(e.g. name, weight, reps , set,date)
     if (name === "name") {
-      console.log("just name");
+      //console.log("just name");
       setNewExercise((prev) => ({ ...prev, [name]: value }));
     } else {
       //update the set based on the index given
@@ -36,11 +36,11 @@ export default function EditForm({ exercise, id, onClose }) {
         };
       });
     }
-    // console.log("some value changed", newExercise);
+    //console.log("some value changed", newExercise);
   };
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(newExercise);
+    // console.log(newExercise);
     try {
       const token = localStorage.getItem("token");
       if (!token) {
@@ -58,7 +58,7 @@ export default function EditForm({ exercise, id, onClose }) {
 
       //edit workout through the exercises id
       const exerciseIndex = originalWorkout.exercises.findIndex(
-        (ex) => ex._id === exercise._id
+        (ex) => ex.id === exercise.id
       );
       if (exerciseIndex !== -1) {
         originalWorkout.exercises[exerciseIndex] = {
@@ -76,7 +76,9 @@ export default function EditForm({ exercise, id, onClose }) {
           },
         }
       );
+
       console.log("success");
+      if (fetchUser) await fetchUser();
       onClose();
     } catch (error) {
       console.log("Error updating workout", error);

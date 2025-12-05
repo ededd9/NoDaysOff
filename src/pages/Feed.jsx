@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/authContext";
-import CreateFeedPost from "../components/CreateFeedPost";
 import axios from "axios";
 export default function Feed() {
   //states
@@ -16,10 +15,15 @@ export default function Feed() {
   });
   //context
   const { user } = useAuth();
+  if (!user) {
+    return <div>Loading..</div>;
+  }
   const token = localStorage.getItem("token");
+
   const toggleModal = () => {
     setCreatingPost(!creatingPost);
   };
+
   useEffect(() => {
     const fetchFeed = async () => {
       try {
@@ -59,9 +63,13 @@ export default function Feed() {
           let followedUsers = followedUsersResponse.data.map(
             (user) => user._id
           );
-          processedPosts = processedPosts.filter((post) =>
-            followedUsers.includes(post.user._id)
+          console.log("followed users ids: ", followedUsers);
+          console.log("before processed posts: ", processedPosts[11].user._id);
+
+          processedPosts = processedPosts.filter(
+            (post) => post.user && followedUsers.includes(post.user._id)
           );
+          console.log("after processed posts: ", processedPosts);
         }
         //set the selected filters
         setPosts(processedPosts);
@@ -239,11 +247,11 @@ export default function Feed() {
           {posts.map((post) => (
             <div key={post._id} className="bg-white p-6 rounded-lg shadow-md">
               <div className="flex items-center mb-4">
-                <Link to={`/Profile/${post.user._id}`}>
+                <Link to={`/Profile/${post.user?._id}`}>
                   <div className="w-10 h-10 bg-gray-300 rounded-full mr-3"></div>
                 </Link>
                 <div>
-                  <h3 className="font-bold">{post.user.name.split(" ")[0]}</h3>
+                  <h3 className="font-bold">{post.user?.name.split(" ")[0]}</h3>
                   <p className="text-gray-500 text-sm">
                     {new Date(post.createdAt).toLocaleString("en-US", {
                       timeZone: "America/New_York",
@@ -260,7 +268,7 @@ export default function Feed() {
                   {post.likes.length}
                 </button>
               </div>
-              {user && user._id === post.user._id && (
+              {user?._id === post.user?._id && (
                 <div className="flex space-x-2">
                   <button
                     onClick={() => handleDelete(post._id)}

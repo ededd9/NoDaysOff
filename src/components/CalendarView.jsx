@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import WorkoutForm from "./WorkoutForm";
 import { useAuth } from "../context/authContext";
+import AIChatModal from "./AIChatModal.jsx";
 import axios from "axios";
 
 import {
@@ -16,7 +17,9 @@ import {
 import { monthsInQuarter } from "date-fns/constants";
 import WorkoutModal from "./WorkoutModal";
 import EditForm from "./EditForm";
+
 export default function CalendarView({ workout, fullUser, fetchUser }) {
+  const token = localStorage.getItem("token");
   const [isEditing, setIsEditing] = useState(false);
   const daysOfWeek = ["Sun", "Mon", "Tues", "Wed", "Thu", "Fri", "Sat"];
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -27,25 +30,41 @@ export default function CalendarView({ workout, fullUser, fetchUser }) {
   const currentDayIndex = currentDate.getDay();
   const [selectedDate, setSelectedDate] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAIModalOpen, setisAIModalOpen] = useState(false);
   const { user } = useAuth();
-  //console.log("USER", user._id);
+
   useEffect(() => {
     if (!user) {
       setSelectedDate(null);
       setIsModalOpen(false);
       setIsEditing(false);
     }
+    grabWorkoutData();
   }, [user]);
   //compute selected workouts b ased on selectedDate so find all workouts on the date of
   //ex 2025-05-05, if none found empty []
   const selectedWorkouts = selectedDate
     ? fullUser.filter((item) => item.date?.split("T")[0] === selectedDate)
     : [];
-  // console.log("SELECTED DATE:", selectedDate);
-  // console.log("SELECTED WORKOUTS:", selectedWorkouts);
+
+  //grabbing workout data for currently logged in user from backend api workouts to send to AI chatbox
+  const [workoutData, setWorkoutData] = useState([]);
+  const grabWorkoutData = async () => {
+    try {
+      const response = await axios.get(`http://localhost:5050/api/workouts`, {
+        headers: { Authorization: `Bearer ${token}` },
+        withCredentials: true,
+      });
+      if (response.data.status === "success") {
+        setWorkoutData(response.data.data);
+      }
+    } catch (error) {
+      console.log("Error in fetching workouts for user");
+    }
+  };
+
   return (
     <>
-      <div>CalendarView</div>
       <div className="space-x-2">
         <button
           className="
@@ -61,15 +80,28 @@ export default function CalendarView({ workout, fullUser, fetchUser }) {
         >
           Next
         </button>
+        <button
+          className="
+          mt-2 px-2 py-1 bg-blue-100 hover:bg-blue-200 text-blue-800 text-xs font-medium rounded-md transition-colors shadow-sm"
+          onClick={() => setisAIModalOpen(true)}
+        >
+          AI Suggestions
+        </button>
+        {isAIModalOpen && (
+          <AIChatModal
+            onClose={() => setisAIModalOpen(false)}
+            workoutData={workoutData}
+          />
+        )}
       </div>
-      <div className="grid grid-cols-7 gap-1 mb-1">
+
+      {/* <div className="grid grid-cols-7 gap-1 mb-1">
         {daysOfWeek.map((day, i) => (
           <div className="text-center " key={i}>
             {day}
           </div>
         ))}
-      </div>
-
+      </div> */}
       <div className="grid grid-cols-7 gap-2 w-full">
         {daysInMonth.map((day, i) => {
           const date = format(day, "yyyy-MM-dd");
@@ -107,7 +139,9 @@ export default function CalendarView({ workout, fullUser, fetchUser }) {
                     ? "bg-green-100"
                     : "bg-red-100"
                 }`}
-              />
+              >
+                {format(day, "EEEE")}
+              </div>
             </div>
           );
         })}

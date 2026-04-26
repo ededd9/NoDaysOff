@@ -4,7 +4,7 @@ import { useAuth } from "../context/authContext";
 import { Link } from "react-router-dom";
 import axios from "axios";
 export default function Profile() {
-  const { user, login } = useAuth(); // currently logged in user
+  const { user, login, updateUser } = useAuth(); // currently logged in user
   const { userId } = useParams(); //user id from url
   const token = localStorage.getItem("token");
   const [editProfile, setEditProfile] = useState(false);
@@ -19,6 +19,8 @@ export default function Profile() {
   const isOwnProfile = !userId || userId === user._id;
   const displayUser = isOwnProfile ? user : profileUser;
   const [formData, setFormData] = useState({});
+  console.log("USER:", isOwnProfile);
+  console.log(user._id);
   useEffect(() => {
     const fetchUserPosts = async () => {
       try {
@@ -30,7 +32,7 @@ export default function Profile() {
             {
               headers: { Authorization: `Bearer ${token}` },
               withCredentials: true,
-            }
+            },
           );
           setProfileUser(response.data);
         }
@@ -39,7 +41,7 @@ export default function Profile() {
           {
             headers: { Authorization: `Bearer ${token}` },
             withCredentials: true,
-          }
+          },
         );
         setIsFollowing(followResponse.data.isFollowing);
         //setUserPosts(response.data);
@@ -52,7 +54,7 @@ export default function Profile() {
           {
             headers: { Authorization: `Bearer ${token}` },
             withCredentials: true,
-          }
+          },
         );
         setUserPosts(postResponse.data);
 
@@ -61,7 +63,7 @@ export default function Profile() {
           {
             headers: { Authorization: `Bearer ${token}` },
             withCredentials: true,
-          }
+          },
         );
         setFollowList(followingResponse.data);
       } catch (err) {
@@ -85,8 +87,6 @@ export default function Profile() {
   //console.log(userPosts);
   const handleFollow = async () => {
     try {
-      const token = localStorage.getItem("token");
-
       const response = await axios.put(
         `http://localhost:5050/api/users/${displayUser._id}/follow`,
         {}, // empty data object
@@ -96,7 +96,7 @@ export default function Profile() {
             "Content-Type": "application/json",
           },
           withCredentials: true,
-        }
+        },
       );
       if (response.data.status === "success") {
         setIsFollowing(response.data.following);
@@ -130,10 +130,14 @@ export default function Profile() {
       const response = await axios.patch(
         `http://localhost:5050/api/users/${user._id}`,
         formData,
-        { headers: { Authorization: `Bearer ${token}` }, withCredentials: true }
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true,
+        },
       );
       const updatedUser = response.data;
-      login(updatedUser);
+      //login(updatedUser);
+      updateUser(updatedUser);
       setEditProfile(false);
       if (!isOwnProfile) {
         setProfileUser(updatedUser);
@@ -147,13 +151,16 @@ export default function Profile() {
       const response = await axios.patch(
         `http://localhost:5050/api/posts/${postId}`,
         { content: editedContent },
-        { headers: { Authorization: `Bearer ${token}` }, withCredentials: true }
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true,
+        },
       );
 
       setUserPosts((prevPosts) =>
         prevPosts.map((post) =>
-          post._id === postId ? { ...post, content: editedContent } : post
-        )
+          post._id === postId ? { ...post, content: editedContent } : post,
+        ),
       );
       setEditingPostId(null);
       setEditedContent("");
@@ -166,7 +173,6 @@ export default function Profile() {
     setEditedContent(post.content);
   };
   const handleLike = async (id) => {
-    const token = localStorage.getItem("token");
     try {
       //url, data, config
       const response = await axios.put(
@@ -175,7 +181,7 @@ export default function Profile() {
         {
           headers: { Authorization: `Bearer ${token}` },
           withCredentials: "true",
-        }
+        },
       );
       //if can access like endpoint, check if the current post id matches the
       //post the user is trying to like , update only the like attribute of the post, if not, then
@@ -185,8 +191,8 @@ export default function Profile() {
           prevPosts.map((post) =>
             post._id === id
               ? { ...post, likes: response.data.data.likes }
-              : post
-          )
+              : post,
+          ),
         );
       }
     } catch (err) {
@@ -198,74 +204,66 @@ export default function Profile() {
     <div className="pt-20 min-h-screen bg-gray-100">
       {/* Profile Section - Top of page under navbar */}
       <div className="container mx-auto px-4 py-8">
-        <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md mx-auto mb-12">
-          {editProfile && isOwnProfile ? (
-            <>
-              <label className="block text-gray-700 text-sm font-bold mb-2">
+        <div className="bg-white p-6 rounded-lg shadow-sm w-full max-w-lg mx-auto mb-6 flex items-start gap-4">
+          <div className="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-medium text-xl flex-shrink-0">
+            {displayUser?.name?.charAt(0).toUpperCase()}
+          </div>
+          <div className="flex-1">
+            {editProfile && isOwnProfile ? (
+              <>
                 <input
-                  placeholder={displayUser?.name}
+                  placeholder="Name"
                   onChange={handleChange}
                   value={formData.name}
                   name="name"
-                  className="w-full p-2 border rounded"
+                  className="w-full p-2 border rounded mb-2 text-sm"
                 />
-              </label>
-              <label className="block text-gray-700 text-sm font-bold mb-2">
                 <input
                   placeholder="Email"
                   name="email"
                   onChange={handleChange}
                   value={formData.email}
-                  className="w-full p-2 border rounded"
+                  className="w-full p-2 border rounded mb-2 text-sm"
                 />
-              </label>
-              <label className="block text-gray-700 text-sm font-bold mb-2">
                 <input
                   placeholder="Bio"
                   name="bio"
                   onChange={handleChange}
                   value={formData.bio}
-                  className="w-full p-2 border rounded"
+                  className="w-full p-2 border rounded text-sm"
                 />
-              </label>
-            </>
-          ) : isOwnProfile ? (
-            <>
-              <h2 className="text-2xl font-semibold mb-2">
-                {displayUser?.name}
-              </h2>
-              <h3>{displayUser?.bio}</h3>
-
-              <p className="text-gray-600 mb-1">Email | {displayUser?.email}</p>
-            </>
-          ) : (
-            <>
-              <h2 className="text-2xl font-semibold mb-2">
-                {displayUser?.name}'s posts!
-              </h2>
-              <h5>{displayUser?.bio ? displayUser?.bio : "No bio"} </h5>
-
-              <button
-                onClick={() => handleFollow()}
-                className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded hover:bg-blue-200 transition"
-              >
-                {isFollowing ? "Unfollow" : "Follow"}
-              </button>
-            </>
-          )}
-
+              </>
+            ) : (
+              <>
+                <h2 className="text-lg font-medium">{displayUser?.name}</h2>
+                <p className="text-sm text-gray-500">
+                  {displayUser?.bio || "No bio"}
+                </p>
+              </>
+            )}
+            <div className="flex gap-4 mt-2 text-center">
+              <div>
+                <p className="font-medium text-sm">{userPosts.length}</p>
+                <p className="text-xs text-gray-400">posts</p>
+              </div>
+              <div>
+                <p className="font-medium text-sm">{followList.length}</p>
+                <p className="text-xs text-gray-400">following</p>
+              </div>
+            </div>
+          </div>
           {isOwnProfile && (
-            <div className="mt-4 space-x-2">
+            <div className="flex flex-col gap-2">
               <button
                 onClick={() => setEditProfile(!editProfile)}
-                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                className="text-xs bg-blue-50 text-blue-600 border border-blue-100 px-3 py-1.5 rounded-lg hover:bg-blue-100 transition"
               >
-                {editProfile ? "Cancel" : "Edit"}
+                {editProfile ? "Cancel" : "Edit profile"}
               </button>
               {editProfile && (
                 <button
-                  className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
                   onClick={handleUpdate}
+                  className="text-xs bg-green-50 text-green-600 border border-green-100 px-3 py-1.5 rounded-lg hover:bg-green-100 transition"
                 >
                   Save
                 </button>
@@ -277,23 +275,18 @@ export default function Profile() {
           <h3 className="text-2xl font-bold mb-8 text-center">Following</h3>
 
           {followList.length > 0 ? (
-            <div className="flex flex-wrap justify-center gap-4">
+            <div className="flex flex-wrap gap-2">
               {followList.map((user, i) => (
-                <div
+                <Link
                   key={i}
-                  className="bg-white p-4 rounded-lg shadow-md text-center w-60"
+                  to={`/Profile/${user._id}`}
+                  className="flex items-center gap-2 bg-gray-50 border border-gray-100 rounded-lg px-3 py-1.5 hover:bg-gray-100 transition no-underline"
                 >
-                  <Link
-                    to={`/Profile/${user._id}`}
-                    style={{ textDecoration: "none" }}
-                    className="flex items-center gap-3 no-underline"
-                  >
-                    <div className="w-10 h-10 bg-gray-300 rounded-full mr-3"></div>
-                    <div>
-                      <span className="text-sm font-medium">{user.name}</span>
-                    </div>
-                  </Link>
-                </div>
+                  <div className="w-7 h-7 bg-green-100 rounded-full flex items-center justify-center text-green-700 text-xs font-medium">
+                    {user.name?.charAt(0).toUpperCase()}
+                  </div>
+                  <span className="text-sm text-gray-700">{user.name}</span>
+                </Link>
               ))}
             </div>
           ) : (
@@ -318,75 +311,69 @@ export default function Profile() {
             {userPosts.map((post) => (
               <div
                 key={post._id}
-                className="bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow"
+                className="bg-white p-4 rounded-lg border border-gray-100 hover:shadow-sm transition"
               >
-                <div className="flex items-center mb-3">
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-bold text-sm truncate">
-                      {displayUser?.name}
-                    </h4>
-                    <p className="text-gray-500 text-xs">
-                      {" "}
-                      {new Date(post.createdAt).toLocaleString("en-US", {
-                        timeZone: "America/New_York",
-                      })}
-                    </p>
-                  </div>
-                </div>
-
-                {isOwnProfile && (
-                  <div className="flex space-x-1 mb-3">
-                    <button
-                      onClick={() => handleLike(post._id)}
-                      className="text-xs bg-green-100 text-green-600 px-1 py-1 rounded hover:bg-green-200 transition"
-                    >
-                      🤍
-                      {post.likes.length}
-                    </button>
-                    <button
-                      onClick={() => handleDelete(post._id)}
-                      className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded hover:bg-red-200 transition"
-                    >
-                      Delete
-                    </button>
-                    {editingPostId === post._id ? (
-                      <>
-                        <button
-                          onClick={() => handleSaveEdit(post._id)}
-                          className="text-xs bg-green-100 text-green-600 px-1 py-1 rounded hover:bg-green-200 transition"
-                        >
-                          Save
-                        </button>
-                        <button
-                          onClick={() => {
-                            setEditingPostId(null);
-                            setEditedContent("");
-                          }}
-                          className="text-xs bg-gray-100 text-gray-600 px-1 py-1 rounded hover:bg-gray-200 transition"
-                        >
-                          Cancel
-                        </button>
-                      </>
-                    ) : (
-                      <button
-                        onClick={() => handleEdit(post)}
-                        className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded hover:bg-blue-200 transition"
-                      >
-                        Edit
-                      </button>
-                    )}
-                  </div>
-                )}
+                <p className="text-xs text-gray-400 mb-1">
+                  {new Date(post.createdAt).toLocaleString("en-US", {
+                    timeZone: "America/New_York",
+                  })}
+                </p>
                 {editingPostId === post._id ? (
                   <textarea
                     value={editedContent}
                     onChange={(e) => setEditedContent(e.target.value)}
+                    className="w-full p-2 border rounded text-sm mb-3"
                   />
                 ) : (
-                  <p className="text-gray-800 text-sm line-clamp-4">
+                  <p className="text-sm text-gray-800 line-clamp-4 mb-3">
                     {post.content}
                   </p>
                 )}
+                <hr className="border-gray-100 mb-3" />
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleLike(post._id)}
+                    className="text-xs bg-green-50 text-green-700 border border-green-100 px-2 py-1 rounded-md hover:bg-green-100 transition"
+                  >
+                    🤍 {post.likes.length}
+                  </button>
+                  {isOwnProfile && (
+                    <>
+                      {editingPostId === post._id ? (
+                        <>
+                          <button
+                            onClick={() => handleSaveEdit(post._id)}
+                            className="text-xs bg-green-50 text-green-700 border border-green-100 px-2 py-1 rounded-md hover:bg-green-100 transition"
+                          >
+                            Save
+                          </button>
+                          <button
+                            onClick={() => {
+                              setEditingPostId(null);
+                              setEditedContent("");
+                            }}
+                            className="text-xs bg-gray-50 text-gray-600 border border-gray-100 px-2 py-1 rounded-md hover:bg-gray-100 transition"
+                          >
+                            Cancel
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          onClick={() => handleEdit(post)}
+                          className="text-xs bg-blue-50 text-blue-600 border border-blue-100 px-2 py-1 rounded-md hover:bg-blue-100 transition"
+                        >
+                          Edit
+                        </button>
+                      )}
+                      <button
+                        onClick={() => handleDelete(post._id)}
+                        className="text-xs bg-red-50 text-red-600 border border-red-100 px-2 py-1 rounded-md hover:bg-red-100 transition"
+                      >
+                        Delete
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
             ))}
           </div>

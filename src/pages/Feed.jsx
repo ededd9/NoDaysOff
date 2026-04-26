@@ -41,7 +41,7 @@ export default function Feed() {
           {
             headers: { Authorization: `Bearer ${token}` },
             withCredentials: true,
-          }
+          },
         );
         //error in retrieving data, return
         if (data.status !== "success") return;
@@ -49,7 +49,7 @@ export default function Feed() {
 
         if (filters.popular) {
           processedPosts = processedPosts.sort(
-            (a, b) => b.likes.length - a.likes.length
+            (a, b) => b.likes.length - a.likes.length,
           );
         }
         if (filters.following) {
@@ -58,16 +58,16 @@ export default function Feed() {
             {
               headers: { Authorization: `Bearer ${token}` },
               withCredentials: true,
-            }
+            },
           );
           let followedUsers = followedUsersResponse.data.map(
-            (user) => user._id
+            (user) => user._id,
           );
           console.log("followed users ids: ", followedUsers);
           console.log("before processed posts: ", processedPosts[11].user._id);
 
           processedPosts = processedPosts.filter(
-            (post) => post.user && followedUsers.includes(post.user._id)
+            (post) => post.user && followedUsers.includes(post.user._id),
           );
           console.log("after processed posts: ", processedPosts);
         }
@@ -95,7 +95,7 @@ export default function Feed() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-        }
+        },
       );
 
       setPosts((prev) => [data, ...prev]);
@@ -132,7 +132,7 @@ export default function Feed() {
         {
           headers: { Authorization: `Bearer ${token}` },
           withCredentials: "true",
-        }
+        },
       );
       //if can access like endpoint, check if the current post id matches the
       //post the user is trying to like , update only the like attribute of the post, if not, then
@@ -142,8 +142,8 @@ export default function Feed() {
           prevPosts.map((post) =>
             post._id === id
               ? { ...post, likes: response.data.data.likes }
-              : post
-          )
+              : post,
+          ),
         );
       }
     } catch (err) {
@@ -160,13 +160,16 @@ export default function Feed() {
       const response = await axios.patch(
         `http://localhost:5050/api/posts/${postId}`,
         { content: editedContent },
-        { headers: { Authorization: `Bearer ${token}` }, withCredentials: true }
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true,
+        },
       );
 
       setPosts((prevPosts) =>
         prevPosts.map((post) =>
-          post._id === postId ? { ...post, content: editedContent } : post
-        )
+          post._id === postId ? { ...post, content: editedContent } : post,
+        ),
       );
       setEditingPostId(null);
       setEditedContent("");
@@ -179,40 +182,37 @@ export default function Feed() {
       {/* Main Grid Container */}
       <div className="container mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Column (1/3 width) */}
-        <div className="lg:col-span-1 space-y-6">
-          {/* Post Creation Card */}
+        <div className="lg:col-span-1 space-y-4">
           <form onSubmit={handleSubmit}>
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <h2 className="text-xl font-bold mb-4">
-                What's on your mind {user ? user.name.split(" ")[0] : null}?
-              </h2>
+            <div className="bg-white p-4 rounded-lg border border-gray-100">
+              <h4 className="text-sm font-medium text-gray-700 mb-3">
+                What's on your mind, {user ? user.name.split(" ")[0] : null}?
+              </h4>
               <textarea
-                placeholder="What's on your mind?"
-                className="w-full p-3 border rounded-lg mb-4"
-                rows="4"
+                placeholder="Write something..."
+                className="w-full p-3 border border-gray-100 rounded-lg mb-2 text-sm resize-none"
+                rows="3"
                 value={postContent}
                 onChange={(e) => setPostContent(e.target.value)}
                 maxLength={1000}
               />
-              <div className="text-sm text-gray-500 mb-1">
-                {postContent.length < 1000
-                  ? postContent.length
-                  : "Cannot exceed 1000 characters"}
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-gray-400">
+                  {postContent.length}/1000
+                </span>
+                <button className="text-xs bg-blue-50 text-blue-600 border border-blue-100 px-4 py-1.5 rounded-lg hover:bg-blue-100 transition">
+                  Post
+                </button>
               </div>
-              <button className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600">
-                Post
-              </button>
             </div>
           </form>
 
-          {/* Filters Section */}
-          <div className="bg-white p-6 rounded-lg shadow-md ">
-            <h2 className="text-xl font-bold mb-4">Filters</h2>
-            <div className="space-y-3">
-              <label className="flex items-center">
+          <div className="bg-white p-4 rounded-lg border border-gray-100">
+            <h4 className="text-sm font-medium text-gray-700 mb-3">Filters</h4>
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 text-sm text-gray-600">
                 <input
                   type="checkbox"
-                  className="mr-2"
                   checked={filters.popular}
                   onChange={(e) =>
                     setFilters((prev) => ({
@@ -223,10 +223,9 @@ export default function Feed() {
                 />
                 Popular
               </label>
-              <label className="flex items-center">
+              <label className="flex items-center gap-2 text-sm text-gray-600">
                 <input
                   type="checkbox"
-                  className="mr-2"
                   checked={filters.following}
                   onChange={(e) =>
                     setFilters((prev) => ({
@@ -242,80 +241,90 @@ export default function Feed() {
         </div>
 
         {/* Right Column (2/3 width) - Posts Feed */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Example Posts */}
+        <div className="lg:col-span-2 space-y-4">
           {posts.map((post) => (
-            <div key={post._id} className="bg-white p-6 rounded-lg shadow-md">
-              <div className="flex items-center mb-4">
-                <Link to={`/Profile/${post.user?._id}`}>
-                  <div className="w-10 h-10 bg-gray-300 rounded-full mr-3"></div>
+            <div
+              key={post._id}
+              className="bg-white p-4 rounded-lg border border-gray-100 hover:shadow-sm transition"
+            >
+              <div className="flex items-center gap-3 mb-3">
+                <Link
+                  to={`/Profile/${post.user?._id}`}
+                  className="flex-shrink-0"
+                >
+                  <div className="w-9 h-9 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 text-sm font-medium">
+                    {post.user?.name.charAt(0).toUpperCase()}
+                  </div>
                 </Link>
-                <div>
-                  <h3 className="font-bold">{post.user?.name.split(" ")[0]}</h3>
-                  <p className="text-gray-500 text-sm">
+                <div className="flex flex-col justify-center leading-none">
+                  <h5 className="text-sm font-medium m-0 p-0">
+                    {post.user?.name}
+                  </h5>
+                  <p className="text-xs text-gray-400 m-0 p-0 mt-1">
                     {new Date(post.createdAt).toLocaleString("en-US", {
                       timeZone: "America/New_York",
                     })}
                   </p>
                 </div>
               </div>
-              <div className="flex space-x-2">
-                <button
-                  onClick={() => handleLike(post._id)}
-                  className="text-xs bg-green-100 text-green-600 px-1 py-1 rounded hover:bg-green-200 transition"
-                >
-                  🤍
-                  {post.likes.length}
-                </button>
-              </div>
-              {user?._id === post.user?._id && (
-                <div className="flex space-x-2">
-                  <button
-                    onClick={() => handleDelete(post._id)}
-                    className="text-xs bg-red-100 text-red-600 px-1 py-1 rounded hover:bg-red-200 transition"
-                  >
-                    Delete
-                  </button>
-
-                  {editingPostId === post._id ? (
-                    <>
-                      <button
-                        onClick={() => handleSaveEdit(post._id)}
-                        className="text-xs bg-green-100 text-green-600 px-1 py-1 rounded hover:bg-green-200 transition"
-                      >
-                        Save
-                      </button>
-                      <button
-                        onClick={() => {
-                          setEditingPostId(null);
-                          setEditedContent("");
-                        }}
-                        className="text-xs bg-gray-100 text-gray-600 px-1 py-1 rounded hover:bg-gray-200 transition"
-                      >
-                        Cancel
-                      </button>
-                    </>
-                  ) : (
-                    <button
-                      onClick={() => handleEdit(post)}
-                      className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded hover:bg-blue-200 transition"
-                    >
-                      Edit
-                    </button>
-                  )}
-                </div>
-              )}
 
               {editingPostId === post._id ? (
                 <textarea
                   value={editedContent}
                   onChange={(e) => setEditedContent(e.target.value)}
+                  className="w-full p-2 border rounded text-sm mb-3"
                 />
               ) : (
-                <p className="text-gray-800 text-sm line-clamp-4">
-                  {post.content}
-                </p>
+                <p className="text-sm text-gray-800 mb-3">{post.content}</p>
               )}
+
+              <hr className="border-gray-100 mb-3" />
+
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handleLike(post._id)}
+                  className="text-xs bg-green-50 text-green-700 border border-green-100 px-2 py-1 rounded-md hover:bg-green-100 transition"
+                >
+                  🤍 {post.likes.length}
+                </button>
+
+                {user?._id === post.user?._id && (
+                  <>
+                    {editingPostId === post._id ? (
+                      <>
+                        <button
+                          onClick={() => handleSaveEdit(post._id)}
+                          className="text-xs bg-green-50 text-green-700 border border-green-100 px-2 py-1 rounded-md hover:bg-green-100 transition"
+                        >
+                          Save
+                        </button>
+                        <button
+                          onClick={() => {
+                            setEditingPostId(null);
+                            setEditedContent("");
+                          }}
+                          className="text-xs bg-gray-50 text-gray-600 border border-gray-100 px-2 py-1 rounded-md hover:bg-gray-100 transition"
+                        >
+                          Cancel
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        onClick={() => handleEdit(post)}
+                        className="text-xs bg-blue-50 text-blue-600 border border-blue-100 px-2 py-1 rounded-md hover:bg-blue-100 transition"
+                      >
+                        Edit
+                      </button>
+                    )}
+                    <button
+                      onClick={() => handleDelete(post._id)}
+                      className="text-xs bg-red-50 text-red-600 border border-red-100 px-2 py-1 rounded-md hover:bg-red-100 transition"
+                    >
+                      Delete
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
           ))}
         </div>

@@ -64,88 +64,100 @@ export default function CalendarView({ workout, fullUser, fetchUser }) {
   };
 
   return (
-    <>
-      <div className="space-x-2">
-        <button
-          className="
-          mt-2 px-2 py-1 bg-blue-100 hover:bg-blue-200 text-blue-800 text-xs font-medium rounded-md transition-colors shadow-sm"
-          onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-        >
-          Previous
-        </button>
-        <button
-          className="
-          mt-2 px-2 py-1 bg-blue-100 hover:bg-blue-200 text-blue-800 text-xs font-medium rounded-md transition-colors shadow-sm"
-          onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-        >
-          Next
-        </button>
-        <button
-          className="
-          mt-2 px-2 py-1 bg-blue-100 hover:bg-blue-200 text-blue-800 text-xs font-medium rounded-md transition-colors shadow-sm"
-          onClick={() => setisAIModalOpen(true)}
-        >
-          AI Suggestions
-        </button>
-        {isAIModalOpen && (
-          <AIChatModal
-            onClose={() => setisAIModalOpen(false)}
-            workoutData={workoutData}
-          />
-        )}
+    <div className="bg-white border border-gray-100 rounded-lg p-4">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-sm font-medium">
+          {format(currentMonth, "MMMM yyyy")}
+        </p>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
+            className="text-xs bg-gray-50 text-gray-600 border border-gray-100 px-3 py-1.5 rounded-lg hover:bg-gray-100 transition"
+          >
+            Previous
+          </button>
+          <button
+            onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
+            className="text-xs bg-gray-50 text-gray-600 border border-gray-100 px-3 py-1.5 rounded-lg hover:bg-gray-100 transition"
+          >
+            Next
+          </button>
+          <button
+            onClick={() => setisAIModalOpen(true)}
+            className="text-xs bg-blue-50 text-blue-600 border border-blue-100 px-3 py-1.5 rounded-lg hover:bg-blue-100 transition"
+          >
+            AI suggestions
+          </button>
+        </div>
       </div>
 
-      {/* <div className="grid grid-cols-7 gap-1 mb-1">
+      {/* Day headers */}
+      <div className="grid grid-cols-7 gap-1 mb-2">
         {daysOfWeek.map((day, i) => (
-          <div className="text-center " key={i}>
+          <div
+            key={i}
+            className="text-center text-xs text-gray-400 py-1 font-medium"
+          >
             {day}
           </div>
         ))}
-      </div> */}
-      <div className="grid grid-cols-7 gap-2 w-full">
+      </div>
+
+      {/* Empty cells before first day */}
+      <div className="grid grid-cols-7 gap-1">
+        {Array.from({ length: monthStart.getDay() }).map((_, i) => (
+          <div
+            key={`empty-${i}`}
+            className="rounded-lg min-h-[70px] bg-gray-50"
+          />
+        ))}
+
+        {/* Day cells */}
         {daysInMonth.map((day, i) => {
           const date = format(day, "yyyy-MM-dd");
+          const hasWorkout = fullUser.some(
+            (item) => date === item.date?.split("T")[0],
+          );
+          const today = isToday(day);
 
-          //fix the logic in ordering current date at top
           return (
             <div
               key={i}
-              className={`text-center cursor-pointer font-small h-[150px] overflow-hidden text-sm py-1
-                aspect-square w-full border rounded-md ${
-                  isToday(day)
-                    ? "bg-blue-200 font-bold"
-                    : fullUser.some((item) => date === item.date?.split("T")[0])
-                    ? "bg-green-100"
-                    : "bg-red-100"
-                }`}
               onClick={() => {
-                const workoutsForDate = fullUser.filter(
-                  (item) => date === item.date?.split("T")[0]
-                );
                 setSelectedDate(date);
-                // console.log(
-                //   `Inside Calendar View: Workouts for ${date}:`,
-                //   workoutsForDate
-                // );
                 setIsModalOpen(true);
               }}
+              className={`rounded-lg min-h-[70px] p-2 cursor-pointer transition border ${
+                today
+                  ? "bg-blue-50 border-blue-100"
+                  : hasWorkout
+                    ? "bg-white border-green-100"
+                    : "bg-white border-gray-100 hover:bg-gray-50"
+              }`}
             >
-              <div className="text-center mb-1">
-                {isToday(day) ? "TODAY" : date}
-              </div>
-              <div
-                className={`h-[calc(100%-30px)] overflow-y-auto p-1 pb-6 ${
-                  fullUser.some((item) => date === item.date?.split("T")[0])
-                    ? "bg-green-100"
-                    : "bg-red-100"
-                }`}
+              <p
+                className={`text-xs font-medium ${today ? "text-blue-600" : "text-gray-700"}`}
               >
-                {format(day, "EEEE")}
-              </div>
+                {today ? "today" : format(day, "d")}
+              </p>
+              {hasWorkout && (
+                <span className="text-xs bg-green-50 text-green-700 border border-green-100 px-1.5 py-0.5 rounded-md mt-1 inline-block">
+                  workout
+                </span>
+              )}
             </div>
           );
         })}
       </div>
+
+      {/* Modals */}
+      {isAIModalOpen && (
+        <AIChatModal
+          onClose={() => setisAIModalOpen(false)}
+          workoutData={workoutData}
+        />
+      )}
       {isModalOpen && (
         <WorkoutModal
           workouts={selectedWorkouts}
@@ -153,6 +165,6 @@ export default function CalendarView({ workout, fullUser, fetchUser }) {
           fetchUser={fetchUser}
         />
       )}
-    </>
+    </div>
   );
 }

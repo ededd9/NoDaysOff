@@ -26,7 +26,7 @@ export default function WorkoutForm({ onSubmit, onClose }) {
       try {
         //first grab only the names of the exercises, should be around 800ish unfiltered names
         const response = await fetch(
-          "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/dist/exercises.json"
+          "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/dist/exercises.json",
         );
         const data = await response.json();
         const names = data.map((exercise) => exercise.name);
@@ -50,7 +50,7 @@ export default function WorkoutForm({ onSubmit, onClose }) {
     //console.log(exerciseNamesList);
     //filter the results as the field changes
     const filtered = exerciseNamesList.filter((exercise) =>
-      exercise.toLowerCase().includes(exercises.name.toLowerCase())
+      exercise.toLowerCase().includes(exercises.name.toLowerCase()),
     );
     setFilteredExerciseNames(filtered.slice(0, 10));
     setShowDropDown(filtered.length > 0);
@@ -102,7 +102,7 @@ export default function WorkoutForm({ onSubmit, onClose }) {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
       console.log("Workout saved:", exercises);
       setExercises({ name: "", weight: 0, reps: 0, sets: 0, date: "" }); // Reset form
@@ -115,21 +115,33 @@ export default function WorkoutForm({ onSubmit, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4 relative">
-            <label
-              htmlFor="name"
-              className="block text-gray-700 text-sm font-bold mb-2"
-            >
-              Exercise Name
+    <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
+      <div className="bg-white rounded-lg border border-gray-100 p-5 w-full max-w-sm mx-4 max-h-[90vh] overflow-y-auto pointer-events-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-4">
+          <p className="text-sm font-medium">Log workout</p>
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-xs bg-gray-50 text-gray-500 border border-gray-100 px-3 py-1 rounded-lg hover:bg-gray-100 transition"
+          >
+            Close
+          </button>
+        </div>
+
+        <hr className="border-gray-100 mb-4" />
+
+        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+          {/* Exercise name */}
+          <div className="relative">
+            <label className="text-xs text-gray-400 block mb-1">
+              Exercise name
             </label>
             <input
               id="name"
               required
               name="name"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              className="w-full px-3 py-2 border border-gray-100 rounded-lg text-xs bg-gray-50"
               placeholder={
                 loadingExercises ? "Loading..." : "Search exercises DB"
               }
@@ -141,12 +153,12 @@ export default function WorkoutForm({ onSubmit, onClose }) {
               autoComplete="off"
             />
             {showDropDown && (
-              <div className="absolute z-20 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-40 overflow-y-auto">
+              <div className="absolute z-20 w-full mt-1 bg-white border border-gray-100 rounded-lg shadow-sm max-h-40 overflow-y-auto">
                 {filteredExerciseNames.map((exercise, index) => (
                   <div
                     key={index}
                     onClick={() => handleExerciseSelect(exercise)}
-                    className="px-3 py-2 cursor-pointer hover:bg-blue-50 border-b border-gray-100 last:border-b-0 text-sm"
+                    className="px-3 py-2 cursor-pointer hover:bg-blue-50 hover:text-blue-600 border-b border-gray-50 last:border-b-0 text-xs"
                   >
                     {exercise}
                   </div>
@@ -156,19 +168,16 @@ export default function WorkoutForm({ onSubmit, onClose }) {
           </div>
 
           {/* Weight */}
-          <div className="mb-4">
-            <label
-              htmlFor="weight"
-              className="block text-gray-700 text-sm font-bold mb-2"
-            >
-              Weight (lbs/kg)
+          <div>
+            <label className="text-xs text-gray-400 block mb-1">
+              Weight (lbs)
             </label>
             <input
               id="weight"
               required
               type="number"
               name="weight"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              className="w-full px-3 py-2 border border-gray-100 rounded-lg text-xs bg-gray-50"
               placeholder="e.g. 135"
               value={exercises.weight}
               onChange={handleChange}
@@ -176,20 +185,14 @@ export default function WorkoutForm({ onSubmit, onClose }) {
           </div>
 
           {/* Sets and Reps */}
-          <div className="grid grid-cols-2 gap-4 mb-6">
-            {/* Sets Dropdown */}
+          <div className="grid grid-cols-2 gap-3">
             <div>
-              <label
-                htmlFor="sets"
-                className="block text-gray-700 text-sm font-bold mb-2"
-              >
-                Sets
-              </label>
+              <label className="text-xs text-gray-400 block mb-1">Sets</label>
               <select
                 id="sets"
                 required
                 name="sets"
-                className="w-full px-4 py-2 border border-gray-300 rounded-md"
+                className="w-full px-3 py-2 border border-gray-100 rounded-lg text-xs bg-gray-50"
                 value={exercises.sets}
                 onChange={handleChange}
               >
@@ -200,20 +203,13 @@ export default function WorkoutForm({ onSubmit, onClose }) {
                 ))}
               </select>
             </div>
-
-            {/* Reps Dropdown */}
             <div>
-              <label
-                htmlFor="reps"
-                className="block text-gray-700 text-sm font-bold mb-2"
-              >
-                Reps
-              </label>
+              <label className="text-xs text-gray-400 block mb-1">Reps</label>
               <select
                 id="reps"
                 required
                 name="reps"
-                className="w-full px-4 py-2 border border-gray-300 rounded-md"
+                className="w-full px-3 py-2 border border-gray-100 rounded-lg text-xs bg-gray-50"
                 value={exercises.reps}
                 onChange={handleChange}
               >
@@ -222,27 +218,31 @@ export default function WorkoutForm({ onSubmit, onClose }) {
                     <option key={num} value={num}>
                       {num}
                     </option>
-                  )
+                  ),
                 )}
               </select>
             </div>
           </div>
-          <label className="block text-gray-700 text-sm font-bold mb-2">
-            Date of Workout :{" "}
-            <input type="date" name="date" onChange={handleChange}></input>
-          </label>
+
+          {/* Date */}
+          <div>
+            <label className="text-xs text-gray-400 block mb-1">Date</label>
+            <input
+              type="date"
+              name="date"
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-100 rounded-lg text-xs bg-gray-50"
+            />
+          </div>
+
+          <hr className="border-gray-100" />
+
+          {/* Save button */}
           <button
             type="submit"
-            className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
+            className="w-full py-2 text-xs font-medium bg-blue-50 text-blue-600 border border-blue-100 rounded-lg hover:bg-blue-100 transition"
           >
-            Save Workout
-          </button>
-          <button
-            type="button"
-            onClick={onClose}
-            className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
-          >
-            Close
+            Save workout
           </button>
         </form>
       </div>

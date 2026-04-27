@@ -9,23 +9,47 @@ export default function Dashboard({ workout, fullUser, fetchUser }) {
   const [activeTab, setActiveTab] = useState("/");
   const [showForm, setShowForm] = useState(false);
   const date = new Date();
-
+  const welcomeText = `Welcome ${user.name}, begin tracking today!`;
   return (
-    <>
-      <div className="pt-16 min-h-screen flex flex-col items-center justify-start">
-        <div className="text-center text-gray-700">
-          <h1 className="text-2xl font-semibold">
-            Today's Date: {date.toLocaleDateString()}
-            {user ? `Welcome ${user.name}` : "Please log in"}
-          </h1>
+    <div className="bg-gray-100 min-h-screen px-4 pt-[80px] pb-8">
+      <div className="max-w-4xl mx-auto space-y-4">
+        {/* Stats row */}
+        <div className="grid grid-cols-3 gap-3">
+          <div className="bg-white border border-gray-100 rounded-lg p-3">
+            <p className="text-xs text-gray-400">this week</p>
+            <p className="text-xl font-medium mt-1">
+              {
+                fullUser.filter((w) => {
+                  const d = new Date(w.date);
+                  const now = new Date();
+                  const weekAgo = new Date(now.setDate(now.getDate() - 7));
+                  return d >= weekAgo;
+                }).length
+              }{" "}
+              workouts
+            </p>
+          </div>
+          <div className="bg-white border border-gray-100 rounded-lg p-3">
+            <p className="text-xs text-gray-400">total logged</p>
+            <p className="text-xl font-medium mt-1">
+              {fullUser.length} workouts
+            </p>
+          </div>
+          <div className="bg-white border border-gray-100 rounded-lg p-3">
+            <p className="text-xs text-gray-400">welcome back</p>
+            <p className="text-xl font-medium mt-1">
+              {user.name.split(" ")[0]}
+            </p>
+          </div>
         </div>
 
+        {/* Calendar */}
         <CalendarView
           workout={workout}
           fullUser={fullUser}
           fetchUser={fetchUser}
         />
       </div>
-    </>
+    </div>
   );
 }

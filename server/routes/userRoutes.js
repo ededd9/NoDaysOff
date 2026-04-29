@@ -13,6 +13,26 @@ router.get("/", async (req, res) => {
   }
 });
 
+router.get("/search", protect, async (req, res) => {
+  try {
+    //destructure name user on frontend searches for
+    const { name } = req.query;
+    //empty search ? -> return empty array
+    if (!name || name.trim() === "") {
+      return res.json([]);
+    }
+    //using regex, find any user whose name contains "xx", case insensitive
+    //return only name, limit results by 10
+    const users = await User.find({
+      name: { $regex: name, $options: "i" },
+    })
+      .select("name")
+      .limit(10);
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
 //get specific user from id
 router.get("/:id", async (req, res) => {
   try {
@@ -44,12 +64,12 @@ router.put("/:id/follow", protect, async (req, res) => {
     if (isFollowing) {
       await User.updateOne(
         { _id: currentUserId },
-        { $pull: { following: new mongoose.Types.ObjectId(targetUserId) } }
+        { $pull: { following: new mongoose.Types.ObjectId(targetUserId) } },
       );
     } else {
       await User.updateOne(
         { _id: currentUserId },
-        { $push: { following: new mongoose.Types.ObjectId(targetUserId) } }
+        { $push: { following: new mongoose.Types.ObjectId(targetUserId) } },
       );
     }
 
@@ -100,7 +120,7 @@ router.patch("/:id", protect, async (req, res) => {
     const updates = Object.keys(req.body);
     const updatesAllowed = ["name", "email", "bio"];
     const isValidUpdate = updates.every((update) =>
-      updatesAllowed.includes(update)
+      updatesAllowed.includes(update),
     );
     if (!isValidUpdate)
       return res.status(400).json({ message: "Invalid updates!" });

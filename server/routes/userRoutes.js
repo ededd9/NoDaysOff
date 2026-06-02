@@ -4,15 +4,26 @@ import { protect } from "../middleware/auth.js";
 import mongoose from "mongoose";
 const router = express.Router();
 //get all users
-router.get("/", async (req, res) => {
+router.get("/", protect, async (req, res) => {
   try {
-    const users = await User.find();
+    const users = await User.find().select("name bio");
     res.json(users);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
-
+//get own full private profile
+router.get("/me", protect, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id)
+      .select("name email bio workoutLog postLog following")
+      .populate("workoutLog");
+    if (!user) return res.status(400).json({ message: "User not found" });
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
 router.get("/search", protect, async (req, res) => {
   try {
     //destructure name user on frontend searches for
@@ -34,9 +45,10 @@ router.get("/search", protect, async (req, res) => {
   }
 });
 //get specific user from id
-router.get("/:id", async (req, res) => {
+router.get("/:id", protect, async (req, res) => {
   try {
     const user = await User.findById(req.params.id)
+      .select("name bio following workoutLog postLog")
       .populate("workoutLog")
       .exec();
     if (!user) return res.status(404).json({ message: "User not found" });
@@ -80,12 +92,7 @@ router.put("/:id/follow", protect, async (req, res) => {
     });
     console.log("Success");
   } catch (err) {
-    console.error("Follow error:", err);
-    res.status(500).json({
-      message: "Internal Server Error",
-      error: err.message,
-      stack: err.stack,
-    });
+    res.status(500).json({ message: "Internal Server Erorr" });
   }
 });
 // get users following list
@@ -117,6 +124,9 @@ router.get("/:id/following", protect, async (req, res) => {
 //update user profiel
 router.patch("/:id", protect, async (req, res) => {
   try {
+    if (req.params.id !== req.user.id) {
+      return res.status(403).json({ message: "Not authorized" });
+    }
     const updates = Object.keys(req.body);
     const updatesAllowed = ["name", "email", "bio"];
     const isValidUpdate = updates.every((update) =>

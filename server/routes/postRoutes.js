@@ -3,7 +3,6 @@ import Post from "../models/Post.js";
 import User from "../models/User.js";
 import { protect } from "../middleware/auth.js";
 import { createPost } from "../Controller/postLogController.js";
-import { model } from "mongoose";
 const router = express.Router();
 router.use(protect);
 router.put("/:id/like", async (req, res) => {
@@ -43,7 +42,9 @@ router.get("/feed", async (req, res) => {
         query.user = { $in: currentUser.following };
         break;
     }
-    const posts = await Post.find().sort({ createdAt: -1 }).populate("user");
+    const posts = await Post.find(query)
+      .sort(sortOption)
+      .populate("user", "name");
     res.status(200).json({ status: "success", data: posts });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -67,7 +68,7 @@ router.get("/user/:id", async (req, res) => {
   try {
     const posts = await Post.find({ user: req.params.id })
       .sort({ createdAt: -1 })
-      .populate("user");
+      .populate("user", "name");
     res.status(200).json(posts);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -100,7 +101,7 @@ router.patch("/:id", async (req, res) => {
         user: userId,
       },
       { content },
-      { new: true, runValidators: true }
+      { new: true, runValidators: true },
     );
     if (!updatedPost) {
       return res

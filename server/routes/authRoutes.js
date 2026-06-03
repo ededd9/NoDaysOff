@@ -1,10 +1,50 @@
 import express from "express";
 import User from "../models/User.js";
-import { es } from "date-fns/locale";
 import jwt from "jsonwebtoken";
+import passport from "../config/passport.js";
 const router = express.Router();
 const ACCESS_SECRET = process.env.ACCESS_SECRET;
 const REFRESH_SECRET = process.env.REFRESH_SECRET;
+//google oauth endpoints
+router.get(
+  "/google",
+  passport.authenticate("google", { scope: ["profile", "email"] }),
+);
+router.get(
+  "/google/callback",
+  passport.authenticate("google", { failureRedirect: "/login" }),
+  async (req, res) => {
+    try {
+      res.setHeader("Cross-Origin-Opener-Policy", "unsafe-none");
+      const token = jwt.sign({ id: req.user._id }, ACCESS_SECRET, {
+        expiresIn: "1h",
+      });
+      const completeUser = await User.findById(req.user._id);
+      const userData = {
+        _id: req.user._id,
+        name: req.user.name,
+        email: req.user.email,
+        bio: req.user.bio,
+      };
+      const payload = {
+        token,
+        user: userData,
+      };
+
+      // send token/user to the opener window
+      res.send(`
+      <script>
+        window.opener.postMessage(${JSON.stringify(payload)}, "${
+          process.env.CLIENT_URL
+        }");
+        window.close();
+      </script>
+    `);
+    } catch (err) {
+      res.redirect("/login?error=auth_failed");
+    }
+  },
+);
 //SIGNUP API ENDPOINT
 router.post("/signup", async (req, res) => {
   try {
@@ -34,14 +74,12 @@ router.post("/login", async (req, res) => {
     const user = await User.findOne({ email }).select("+password");
 
     if (!user) {
-      return res
-        .status(401)
-        .json({ status: "fail", message: "User not found" });
+      return res.status(401).json({ message: "Invalid email or password" });
     }
 
     const isPasswordValid = await user.comparePassword(password);
     if (!isPasswordValid) {
-      return res.status(401).json({ status: "fail", message: "Invalid creds" });
+      return res.status(401).json({ message: "Invalid email or password" });
     }
 
     const accessToken = jwt.sign({ id: user._id }, ACCESS_SECRET, {
@@ -54,7 +92,6 @@ router.post("/login", async (req, res) => {
     req.session.refreshToken = refreshToken;
 
     const { password: pw, ...userData } = user.toObject();
-    console.log("Sending user data:", userData); // <- this must include _id
 
     res.status(200).json({
       status: "success",
@@ -77,7 +114,7 @@ router.post("/refresh", (req, res) => {
         .status(403)
         .json({ message: "Invalid or expired refresh token" });
 
-    const newAccessToken = jwt.sign({ id: user._id }, ACCESS_SECRET, {
+    const newAccessToken = jwt.sign({ id: user.id }, ACCESS_SECRET, {
       expiresIn: "1h",
     });
 

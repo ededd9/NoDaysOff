@@ -42,24 +42,15 @@ router.get("/:id", async (req, res) => {
 //update a workout
 router.put("/:id", async (req, res) => {
   try {
-    const workout = await Workout.findOne({
-      _id: req.params.id,
-      user: req.user.id,
-    });
-    if (workout) {
-      try {
-        const updatedWorkout = await Workout.findByIdAndUpdate(
-          req.params.id,
-          {
-            $set: req.body,
-          },
-          { new: true }
-        );
-        res.status(200).json(updatedWorkout);
-      } catch (error) {
-        res.status(500).json({ message: error.message });
-      }
+    const updatedWorkout = await Workout.findOneAndUpdate(
+      { _id: req.params.id, user: req.user.id },
+      { $set: req.body },
+      { new: true },
+    );
+    if (!updatedWorkout) {
+      return res.status(400).json({ message: "Workout not found" });
     }
+    res.status(200).json(updatedWorkout);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -72,8 +63,6 @@ router.delete("/:workoutId/exercises/:exerciseIndex", async (req, res) => {
       _id: workoutId,
       user: req.user.id,
     });
-    console.log(workoutId);
-    console.log(workout);
 
     if (!workout) return res.status(404).json({ message: "Workout not found" });
 
@@ -82,7 +71,7 @@ router.delete("/:workoutId/exercises/:exerciseIndex", async (req, res) => {
       await Workout.deleteOne({ _id: workoutId });
       return res
         .status(200)
-        .json({ message: "Workout deleted as no excercies are left" });
+        .json({ message: "Workout deleted as no exercises are left" });
     } else {
       await workout.save();
       res.status(200).json({ message: "Exercise deleted", data: workout });

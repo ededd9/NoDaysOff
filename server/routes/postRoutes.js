@@ -104,9 +104,7 @@ router.patch("/:id", async (req, res) => {
       { new: true, runValidators: true },
     );
     if (!updatedPost) {
-      return res
-        .status(400)
-        .json({ message: "Post not found or unauthorized" });
+      return res.status(404).json({ message: "Post not found" });
     }
     res.status(200).json({
       status: "success",
@@ -126,17 +124,14 @@ router.delete("/:id", async (req, res) => {
       user: req.user.id,
     });
     //no post, return no post found
-    if (!post) return res.status(400).json({ message: "Post not found" });
+    if (!post) return res.status(404).json({ message: "Post not found" });
     //remove post from users post array(update)
     await User.findByIdAndUpdate(req.user.id, {
       $pull: { posts: postId, postLog: postId },
     });
-    //success response in terminal
-    res
-      .status(200)
-      .json({ message: "Post deleted successfully", deletedPost: post });
+
+    res.status(200).json({ message: "Post deleted successfully" });
   } catch (err) {
-    //unsuccessful response in terminal
     res.status(500).json({ message: err.message });
   }
 });

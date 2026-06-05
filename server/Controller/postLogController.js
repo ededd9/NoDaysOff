@@ -3,12 +3,10 @@ import User from "../models/User.js";
 
 export const createPost = async (req, res) => {
   try {
-    console.log("Incoming request body:", req.body);
     const { content } = req.body;
     const userId = req.user.id;
-    if (!userId || !content) {
-      console.log("Missing required fields");
-      return res.status(400).json({ error: "Missing userId or content" });
+    if (!content) {
+      return res.status(400).json({ error: "Content is required" });
     }
     const newPost = new Post({
       user: userId,
@@ -16,15 +14,17 @@ export const createPost = async (req, res) => {
     });
 
     const savedPost = await newPost.save();
-    const populatedPost = await Post.findById(savedPost.id).populate(
-      "user",
-      "name email"
-    );
     await User.findByIdAndUpdate(userId, {
-      $push: { posts: savedPost.id, postLog: savedPost.id },
+      $push: { posts: savedPost.id },
     });
-
-    res.status(201).json(populatedPost);
+    const responsePost = {
+      ...savedPost.toObject(),
+      user: {
+        _id: req.user._id,
+        name: req.user.name,
+      },
+    };
+    res.status(201).json(responsePost);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
